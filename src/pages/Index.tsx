@@ -1,383 +1,237 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { RecipeSection } from "@/components/RecipeSection";
-import { 
-  ChefHat, Clock, Users, Flame, ListChecks, Utensils, 
-  Lightbulb, Apple, Heart, Sparkles, BookOpen, Share2 
+import {
+  Flame, Tent, Caravan, Mountain, Users, Sparkles, Clock,
+  ShoppingBasket, FileDown, MessageCircle, ArrowRight, Leaf, DollarSign,
 } from "lucide-react";
-import heroFood from "@/assets/hero-food.jpg";
+import { toast } from "sonner";
+import heroImg from "@/assets/hero-campfire.jpg";
+
+const features = [
+  { icon: Sparkles, title: "AI Meal Planner", desc: "Full breakfast/lunch/dinner plans in under 30 seconds." },
+  { icon: Leaf, title: "Use What You Have", desc: "Type your ingredients — get instant camp-friendly recipes." },
+  { icon: FileDown, title: "Printable Meal Pack", desc: "One-tap PDF with meals, grocery list, prep checklist." },
+  { icon: DollarSign, title: "Budget Mode", desc: "“Feed 4 campers under $50” — done." },
+  { icon: ShoppingBasket, title: "Smart Grocery Export", desc: "Organized shopping lists grouped by aisle." },
+  { icon: MessageCircle, title: "Campfire Assistant", desc: "Ask anything: water-light meals, no-fridge food, fuel tips." },
+];
+
+const modes = [
+  { icon: Tent, label: "Tent Camping" },
+  { icon: Caravan, label: "RV Travel" },
+  { icon: Mountain, label: "Backpacking" },
+  { icon: Flame, label: "Survival / Minimalist" },
+  { icon: Users, label: "Family Camping" },
+];
 
 const Index = () => {
-  const [dishName, setDishName] = useState("");
-  const [showRecipe, setShowRecipe] = useState(false);
+  const [email, setEmail] = useState("");
 
-  const handleGenerate = () => {
-    if (dishName.trim()) {
-      setShowRecipe(true);
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.includes("@")) {
+      toast.error("Enter a valid email");
+      return;
     }
+    toast.success("You're in! Your free meal plan is on the way.");
+    setEmail("");
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center opacity-20"
-          style={{ backgroundImage: `url(${heroFood})` }}
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Nav */}
+      <header className="absolute top-0 inset-x-0 z-20">
+        <div className="container mx-auto px-4 py-5 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2 text-primary-foreground">
+            <span className="w-9 h-9 rounded-full bg-gradient-ember flex items-center justify-center shadow-warm">
+              <Flame className="w-5 h-5 text-accent-foreground" />
+            </span>
+            <span className="font-extrabold tracking-tight text-lg">Campfire Chef AI</span>
+          </Link>
+          <Link to="/planner">
+            <Button size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-warm">
+              Plan a trip
+            </Button>
+          </Link>
+        </div>
+      </header>
+
+      {/* Hero */}
+      <section className="relative overflow-hidden min-h-[100svh] flex items-center">
+        <img
+          src={heroImg}
+          alt="Cast iron skillet cooking over a glowing campfire next to a tent in a pine forest"
+          className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-hero opacity-90" />
-        
-        <div className="relative container mx-auto px-4 py-20 md:py-32">
-          <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-card/30 backdrop-blur-sm rounded-full mb-6 shadow-soft">
-              <ChefHat className="w-5 h-5 text-primary-foreground" />
-              <span className="text-sm font-medium text-primary-foreground">World-Class Recipe Generator</span>
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/85 via-primary/60 to-primary/95" />
+
+        <div className="relative container mx-auto px-4 py-28 md:py-36">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-accent/20 backdrop-blur-sm border border-accent/30 rounded-full mb-6">
+              <Sparkles className="w-4 h-4 text-accent" />
+              <span className="text-xs font-semibold text-primary-foreground uppercase tracking-wider">
+                AI Camping Meal Planner
+              </span>
             </div>
-            
-            <h1 className="text-4xl md:text-6xl font-bold text-primary-foreground mb-6 leading-tight">
-              Create Professional Recipes in Seconds
+
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold text-primary-foreground leading-[1.05] tracking-tight">
+              Plan your entire camping menu in{" "}
+              <span className="bg-gradient-ember bg-clip-text text-transparent">30 seconds.</span>
             </h1>
-            
-            <p className="text-lg md:text-xl text-primary-foreground/90 mb-10 leading-relaxed">
-              Get detailed, chef-quality recipes with nutritional info, cooking tips, and beautiful presentation ideas. 
-              From traditional classics to modern fusion — your culinary journey starts here.
+
+            <p className="mt-6 text-lg md:text-xl text-primary-foreground/85 max-w-2xl leading-relaxed">
+              Stress-free outdoor cooking. Perfect meals for campfires, RV trips, and adventure travel —
+              tailored to your gear, budget, and group.
             </p>
 
-            {/* Recipe Input */}
-            <div className="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto">
-              <Input
-                placeholder="Enter dish name (e.g., Butter Chicken, Tiramisu, Pad Thai)"
-                value={dishName}
-                onChange={(e) => setDishName(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleGenerate()}
-                className="flex-1 h-12 bg-card shadow-soft border-border/50 text-foreground placeholder:text-muted-foreground"
-              />
-              <Button 
-                onClick={handleGenerate}
-                size="lg"
-                className="h-12 px-8 bg-accent hover:bg-accent/90 text-accent-foreground shadow-warm font-semibold"
+            <div className="mt-10 flex flex-col sm:flex-row gap-3">
+              <Link to="/planner" className="sm:flex-shrink-0">
+                <Button
+                  size="lg"
+                  className="w-full sm:w-auto h-14 px-8 bg-accent hover:bg-accent/90 text-accent-foreground shadow-warm font-bold text-base"
+                >
+                  Generate my meal plan
+                  <ArrowRight className="w-5 h-5 ml-1" />
+                </Button>
+              </Link>
+              <Link to="/planner?mode=ingredients" className="sm:flex-shrink-0">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full sm:w-auto h-14 px-8 bg-background/10 backdrop-blur border-primary-foreground/30 text-primary-foreground hover:bg-background/20 hover:text-primary-foreground font-semibold text-base"
+                >
+                  I have ingredients
+                </Button>
+              </Link>
+            </div>
+
+            <p className="mt-6 text-sm text-primary-foreground/70">
+              Free to try • No signup required • Printable PDF included
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="py-20 md:py-28">
+        <div className="container mx-auto px-4">
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <p className="text-accent font-semibold uppercase tracking-wider text-sm mb-3">Why campers love it</p>
+            <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">
+              Outdoor cooking, finally figured out.
+            </h2>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {features.map((f) => (
+              <div
+                key={f.title}
+                className="group p-7 rounded-2xl bg-gradient-card border border-border shadow-soft hover:shadow-warm hover:-translate-y-1 transition-all"
               >
-                Generate Recipe
-              </Button>
+                <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-5 group-hover:bg-accent/20 transition-colors">
+                  <f.icon className="w-6 h-6 text-accent" />
+                </div>
+                <h3 className="font-bold text-lg mb-2">{f.title}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Modes */}
+      <section className="py-20 bg-secondary/50">
+        <div className="container mx-auto px-4">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Built for every kind of trip</h2>
+            <p className="mt-3 text-muted-foreground">From a weekend tent to a 6-week RV haul.</p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {modes.map((m) => (
+              <div
+                key={m.label}
+                className="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl bg-card border border-border shadow-soft hover:border-accent/50 transition-all"
+              >
+                <m.icon className="w-8 h-8 text-primary" />
+                <span className="text-sm font-semibold text-center">{m.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Steps */}
+      <section className="py-20 md:py-28">
+        <div className="container mx-auto px-4">
+          <div className="grid lg:grid-cols-3 gap-8">
+            {[
+              { n: "01", t: "Tell us your trip", d: "Days, people, gear, dietary needs, and budget. Takes 20 seconds." },
+              { n: "02", t: "AI builds your menu", d: "Smart, fuel-efficient meals matched to your equipment and storage." },
+              { n: "03", t: "Pack & go", d: "Download a print-ready PDF with grocery list, prep checklist, and storage tips." },
+            ].map((s) => (
+              <div key={s.n} className="relative p-8 rounded-2xl bg-gradient-card border border-border shadow-soft">
+                <span className="absolute -top-4 left-6 text-5xl font-black text-accent/20">{s.n}</span>
+                <Clock className="w-7 h-7 text-accent mb-4" />
+                <h3 className="font-bold text-xl mb-2">{s.t}</h3>
+                <p className="text-muted-foreground">{s.d}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Email capture */}
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto rounded-3xl overflow-hidden bg-gradient-hero shadow-warm">
+            <div className="p-10 md:p-14 text-center">
+              <h2 className="text-3xl md:text-4xl font-extrabold text-primary-foreground mb-4">
+                Get a free 3-day campfire meal plan
+              </h2>
+              <p className="text-primary-foreground/85 mb-8 max-w-xl mx-auto">
+                Drop your email and we'll send a printable starter pack — plus weekly seasonal recipes.
+              </p>
+              <form
+                onSubmit={handleSubscribe}
+                className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto"
+              >
+                <Input
+                  type="email"
+                  required
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="h-12 bg-background/95 border-0 text-foreground"
+                />
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="h-12 px-7 bg-accent hover:bg-accent/90 text-accent-foreground font-bold shadow-warm"
+                >
+                  Send me the plan
+                </Button>
+              </form>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Recipe Display */}
-      {showRecipe && (
-        <section className="container mx-auto px-4 py-16">
-          <div className="max-w-4xl mx-auto space-y-6">
-            
-            {/* Title & Description */}
-            <div className="text-center mb-10">
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-                {dishName || "Your Amazing Dish"}
-              </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                A delightful fusion of authentic flavors and modern techniques, this dish brings warmth to your table 
-                with its aromatic spices and perfectly balanced textures. Perfect for both weeknight dinners and special occasions.
-              </p>
-            </div>
-
-            {/* Quick Info */}
-            <RecipeSection icon={Clock} title="Quick Info">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Prep Time</p>
-                  <p className="font-semibold">20 minutes</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Cook Time</p>
-                  <p className="font-semibold">35 minutes</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Total Time</p>
-                  <p className="font-semibold">55 minutes</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Servings</p>
-                  <p className="font-semibold">4 people</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Difficulty</p>
-                  <p className="font-semibold">Medium</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Cuisine</p>
-                  <p className="font-semibold">Fusion</p>
-                </div>
-              </div>
-            </RecipeSection>
-
-            {/* Ingredients */}
-            <RecipeSection icon={ListChecks} title="Ingredients">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-semibold text-primary mb-2">Main Ingredients</h3>
-                  <ul className="space-y-2">
-                    <li className="flex items-start gap-2">
-                      <span className="text-primary mt-1">•</span>
-                      <span>500g chicken breast (or tofu for vegetarian option)</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-primary mt-1">•</span>
-                      <span>200ml coconut cream</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-primary mt-1">•</span>
-                      <span>2 tablespoons olive oil</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-primary mt-1">•</span>
-                      <span>1 large onion, finely diced</span>
-                    </li>
-                  </ul>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-primary mb-2">Spices & Seasonings</h3>
-                  <ul className="space-y-2">
-                    <li className="flex items-start gap-2">
-                      <span className="text-primary mt-1">•</span>
-                      <span>2 teaspoons garam masala</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-primary mt-1">•</span>
-                      <span>1 teaspoon turmeric powder</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-primary mt-1">•</span>
-                      <span>Salt and pepper to taste</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </RecipeSection>
-
-            {/* Equipment */}
-            <RecipeSection icon={Utensils} title="Equipment Needed">
-              <div className="flex flex-wrap gap-3">
-                <span className="px-4 py-2 bg-secondary rounded-lg text-sm font-medium">Large Pan</span>
-                <span className="px-4 py-2 bg-secondary rounded-lg text-sm font-medium">Cutting Board</span>
-                <span className="px-4 py-2 bg-secondary rounded-lg text-sm font-medium">Sharp Knife</span>
-                <span className="px-4 py-2 bg-secondary rounded-lg text-sm font-medium">Mixing Bowl</span>
-                <span className="px-4 py-2 bg-secondary rounded-lg text-sm font-medium">Wooden Spoon</span>
-              </div>
-            </RecipeSection>
-
-            {/* Cooking Instructions */}
-            <RecipeSection icon={Flame} title="Step-by-Step Instructions">
-              <ol className="space-y-4">
-                <li className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">1</span>
-                  <div>
-                    <p className="font-medium mb-1">Prepare the ingredients</p>
-                    <p className="text-sm text-muted-foreground">Dice the onion finely, cut chicken into bite-sized pieces, and measure all spices. This mise en place saves time later.</p>
-                  </div>
-                </li>
-                <li className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">2</span>
-                  <div>
-                    <p className="font-medium mb-1">Sear the protein</p>
-                    <p className="text-sm text-muted-foreground">Heat oil in a large pan over medium-high heat. Add chicken pieces and cook for 5-6 minutes until golden brown. Set aside.</p>
-                  </div>
-                </li>
-                <li className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">3</span>
-                  <div>
-                    <p className="font-medium mb-1">Build the base</p>
-                    <p className="text-sm text-muted-foreground">In the same pan, sauté onions until translucent (about 4 minutes). Add spices and stir continuously for 30 seconds to release aromas.</p>
-                  </div>
-                </li>
-                <li className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">4</span>
-                  <div>
-                    <p className="font-medium mb-1">Combine and simmer</p>
-                    <p className="text-sm text-muted-foreground">Return chicken to pan, add coconut cream, and bring to a gentle simmer. Cook uncovered for 15-20 minutes, stirring occasionally.</p>
-                  </div>
-                </li>
-                <li className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">5</span>
-                  <div>
-                    <p className="font-medium mb-1">Final touches</p>
-                    <p className="text-sm text-muted-foreground">Adjust seasoning with salt and pepper. Let rest for 5 minutes off heat before serving for flavors to meld beautifully.</p>
-                  </div>
-                </li>
-              </ol>
-            </RecipeSection>
-
-            {/* Chef Tips */}
-            <RecipeSection icon={Lightbulb} title="Chef Tips & Common Mistakes">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-semibold text-accent mb-2 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4" />
-                    Pro Tips
-                  </h3>
-                  <ul className="space-y-2 text-sm">
-                    <li className="flex gap-2">
-                      <span className="text-accent">✓</span>
-                      <span>Let chicken come to room temperature before cooking for even heat distribution</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="text-accent">✓</span>
-                      <span>Toast whole spices first, then grind for maximum flavor depth</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="text-accent">✓</span>
-                      <span>Use full-fat coconut cream for richer, more authentic taste</span>
-                    </li>
-                  </ul>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-destructive mb-2">Common Mistakes to Avoid</h3>
-                  <ul className="space-y-2 text-sm">
-                    <li className="flex gap-2">
-                      <span className="text-destructive">✗</span>
-                      <span>Overcrowding the pan — cook in batches if needed</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="text-destructive">✗</span>
-                      <span>Adding salt too early can dry out the protein</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </RecipeSection>
-
-            {/* Nutrition */}
-            <RecipeSection icon={Apple} title="Nutritional Information">
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center p-4 bg-secondary rounded-lg">
-                    <p className="text-2xl font-bold text-primary">420</p>
-                    <p className="text-sm text-muted-foreground">Calories</p>
-                  </div>
-                  <div className="text-center p-4 bg-secondary rounded-lg">
-                    <p className="text-2xl font-bold text-primary">32g</p>
-                    <p className="text-sm text-muted-foreground">Protein</p>
-                  </div>
-                  <div className="text-center p-4 bg-secondary rounded-lg">
-                    <p className="text-2xl font-bold text-primary">18g</p>
-                    <p className="text-sm text-muted-foreground">Carbs</p>
-                  </div>
-                  <div className="text-center p-4 bg-secondary rounded-lg">
-                    <p className="text-2xl font-bold text-primary">24g</p>
-                    <p className="text-sm text-muted-foreground">Fats</p>
-                  </div>
-                </div>
-                <div className="p-4 bg-accent/10 rounded-lg border-l-4 border-accent">
-                  <p className="text-sm">
-                    <span className="font-semibold">Health Insight:</span> High in protein and healthy fats, 
-                    this dish supports muscle recovery and sustained energy. Perfect for post-workout meals or active lifestyles.
-                  </p>
-                </div>
-              </div>
-            </RecipeSection>
-
-            {/* Pairings */}
-            <RecipeSection icon={Heart} title="Flavor Pairings & Serving">
-              <div className="space-y-3">
-                <div>
-                  <h3 className="font-semibold mb-2">Perfect Pairings</h3>
-                  <p className="text-sm">Serve with fluffy basmati rice, warm naan bread, or cauliflower rice for a low-carb option. 
-                  Pair with a crisp white wine or mango lassi.</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-2">Plating Ideas</h3>
-                  <p className="text-sm">Garnish with fresh cilantro, a swirl of cream, and a sprinkle of garam masala. 
-                  Serve in a shallow bowl with sides arranged artistically for Instagram-worthy presentation.</p>
-                </div>
-              </div>
-            </RecipeSection>
-
-            {/* Variations */}
-            <RecipeSection icon={Users} title="Recipe Variations">
-              <div className="space-y-3">
-                <div className="p-4 bg-secondary rounded-lg">
-                  <h3 className="font-semibold mb-2">🌱 Vegan Version</h3>
-                  <p className="text-sm">Replace chicken with firm tofu or chickpeas. Use coconut yogurt instead of cream for tang.</p>
-                </div>
-                <div className="p-4 bg-secondary rounded-lg">
-                  <h3 className="font-semibold mb-2">⚡ Quick 15-Min Version</h3>
-                  <p className="text-sm">Use pre-cooked rotisserie chicken and jarred curry paste. Skip marination and simmer for just 8 minutes.</p>
-                </div>
-                <div className="p-4 bg-secondary rounded-lg">
-                  <h3 className="font-semibold mb-2">🌾 Gluten-Free</h3>
-                  <p className="text-sm">Already naturally gluten-free! Just ensure spice blends contain no wheat-based fillers.</p>
-                </div>
-              </div>
-            </RecipeSection>
-
-            {/* Fun Fact */}
-            <RecipeSection icon={BookOpen} title="Fun Fact">
-              <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-                <p className="text-sm leading-relaxed">
-                  🌏 This fusion dish combines traditional South Asian cooking techniques with modern ingredient innovations, 
-                  reflecting how cuisines evolve through cultural exchange and creativity.
-                </p>
-              </div>
-            </RecipeSection>
-
-            {/* Social Caption */}
-            <RecipeSection icon={Share2} title="Share Your Creation">
-              <div className="space-y-3">
-                <div className="p-4 bg-gradient-hero rounded-lg">
-                  <p className="text-primary-foreground text-sm italic leading-relaxed">
-                    "Just whipped up this melt-in-your-mouth {dishName || "masterpiece"} and my kitchen smells like heaven! 
-                    The golden-brown sear, that creamy coconut sauce, those aromatic spices — pure culinary magic ✨🍽️"
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <span className="px-3 py-1 bg-secondary rounded-full text-xs font-medium">#HomeCooking</span>
-                  <span className="px-3 py-1 bg-secondary rounded-full text-xs font-medium">#FoodieLife</span>
-                  <span className="px-3 py-1 bg-secondary rounded-full text-xs font-medium">#RecipeOfTheDay</span>
-                </div>
-              </div>
-            </RecipeSection>
-
+      {/* Footer */}
+      <footer className="border-t border-border py-10">
+        <div className="container mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span className="w-7 h-7 rounded-full bg-gradient-ember flex items-center justify-center">
+              <Flame className="w-4 h-4 text-accent-foreground" />
+            </span>
+            <span className="font-bold">Campfire Chef AI</span>
           </div>
-        </section>
-      )}
-
-      {/* Footer CTA */}
-      {!showRecipe && (
-        <section className="container mx-auto px-4 py-20">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl font-bold text-foreground mb-4">
-              Ready to Cook Something Amazing?
-            </h2>
-            <p className="text-muted-foreground mb-8">
-              Enter any dish name above and get a complete, professional recipe with detailed instructions, 
-              nutritional info, and chef tips.
-            </p>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="p-6 bg-card rounded-lg shadow-soft">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <ChefHat className="w-6 h-6 text-primary" />
-                </div>
-                <h3 className="font-semibold mb-2">Chef-Quality</h3>
-                <p className="text-sm text-muted-foreground">Professional recipes with precise measurements</p>
-              </div>
-              <div className="p-6 bg-card rounded-lg shadow-soft">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <Clock className="w-6 h-6 text-primary" />
-                </div>
-                <h3 className="font-semibold mb-2">Time-Accurate</h3>
-                <p className="text-sm text-muted-foreground">Real prep and cook times you can trust</p>
-              </div>
-              <div className="p-6 bg-card rounded-lg shadow-soft">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <Sparkles className="w-6 h-6 text-primary" />
-                </div>
-                <h3 className="font-semibold mb-2">Pro Tips Included</h3>
-                <p className="text-sm text-muted-foreground">Learn techniques from expert chefs</p>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
+          <p className="text-sm text-muted-foreground">
+            © {new Date().getFullYear()} Campfire Chef AI. Cook wild.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };
