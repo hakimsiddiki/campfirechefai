@@ -61,6 +61,7 @@ export default {
       backgroundImage: {
         'gradient-hero': 'var(--gradient-hero)',
         'gradient-card': 'var(--gradient-card)',
+        'gradient-ember': 'var(--gradient-ember)',
       },
       boxShadow: {
         'warm': 'var(--shadow-warm)',
