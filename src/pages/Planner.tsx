@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -186,6 +187,14 @@ const Planner = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Meal Planner — Campfire Chef AI</title>
+        <meta name="description" content="Generate AI-powered camping meal plans, ingredient-based recipe ideas, and a campfire cooking assistant chat — printable PDFs included." />
+        <link rel="canonical" href="https://campfirechefai.lovable.app/planner" />
+        <meta property="og:title" content="Meal Planner — Campfire Chef AI" />
+        <meta property="og:description" content="Build a custom camp menu in 30 seconds — meals, grocery list, and printable PDF tailored to your trip." />
+        <meta property="og:url" content="https://campfirechefai.lovable.app/planner" />
+      </Helmet>
       <header className="border-b border-border bg-card sticky top-0 z-10">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
@@ -215,17 +224,17 @@ const Planner = () => {
           <TabsContent value="plan" className="space-y-6">
             <div className="grid sm:grid-cols-2 gap-4 p-6 rounded-2xl bg-card border border-border shadow-soft">
               <div className="space-y-2">
-                <Label>Trip length (days)</Label>
-                <Input type="number" min={1} max={14} value={days} onChange={(e) => setDays(+e.target.value || 1)} />
+                <Label htmlFor="trip-days">Trip length (days)</Label>
+                <Input id="trip-days" type="number" min={1} max={14} value={days} onChange={(e) => setDays(+e.target.value || 1)} />
               </div>
               <div className="space-y-2">
-                <Label>People</Label>
-                <Input type="number" min={1} max={20} value={people} onChange={(e) => setPeople(+e.target.value || 1)} />
+                <Label htmlFor="trip-people">People</Label>
+                <Input id="trip-people" type="number" min={1} max={20} value={people} onChange={(e) => setPeople(+e.target.value || 1)} />
               </div>
               <div className="space-y-2">
-                <Label>Camping mode</Label>
+                <Label htmlFor="camping-mode">Camping mode</Label>
                 <Select value={campingMode} onValueChange={setCampingMode}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger id="camping-mode" aria-label="Camping mode"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Tent camping">Tent camping</SelectItem>
                     <SelectItem value="RV camping">RV camping</SelectItem>
@@ -236,9 +245,9 @@ const Planner = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Storage</Label>
+                <Label htmlFor="storage">Storage</Label>
                 <Select value={storage} onValueChange={setStorage}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger id="storage" aria-label="Storage"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="cooler with ice">Cooler with ice</SelectItem>
                     <SelectItem value="RV fridge">RV fridge</SelectItem>
@@ -248,13 +257,13 @@ const Planner = () => {
                 </Select>
               </div>
               <div className="space-y-2 sm:col-span-2">
-                <Label>Cooking equipment</Label>
-                <Input value={equipment} onChange={(e) => setEquipment(e.target.value)} placeholder="campfire, portable stove, grill…" />
+                <Label htmlFor="equipment">Cooking equipment</Label>
+                <Input id="equipment" value={equipment} onChange={(e) => setEquipment(e.target.value)} placeholder="campfire, portable stove, grill…" />
               </div>
               <div className="space-y-2">
-                <Label>Dietary preference</Label>
+                <Label htmlFor="diet">Dietary preference</Label>
                 <Select value={diet} onValueChange={setDiet}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger id="diet" aria-label="Dietary preference"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="no restrictions">No restrictions</SelectItem>
                     <SelectItem value="vegetarian">Vegetarian</SelectItem>
@@ -266,15 +275,15 @@ const Planner = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Budget (optional)</Label>
-                <Input value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="$50 total, or per person" />
+                <Label htmlFor="budget">Budget (optional)</Label>
+                <Input id="budget" value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="$50 total, or per person" />
               </div>
               <div className="sm:col-span-2 flex items-center justify-between p-4 rounded-xl bg-secondary/50">
                 <div>
-                  <p className="font-semibold">Minimal dishes mode</p>
+                  <Label htmlFor="minimal-dishes" className="font-semibold cursor-pointer">Minimal dishes mode</Label>
                   <p className="text-sm text-muted-foreground">Favor one-pot meals & easy cleanup</p>
                 </div>
-                <Switch checked={minimalDishes} onCheckedChange={setMinimalDishes} />
+                <Switch id="minimal-dishes" aria-label="Minimal dishes mode" checked={minimalDishes} onCheckedChange={setMinimalDishes} />
               </div>
             </div>
 
@@ -369,8 +378,9 @@ const Planner = () => {
           {/* INGREDIENTS */}
           <TabsContent value="ingredients" className="space-y-4">
             <div className="p-6 rounded-2xl bg-card border border-border shadow-soft space-y-4">
-              <Label>What ingredients & gear do you have?</Label>
+              <Label htmlFor="ingredients">What ingredients & gear do you have?</Label>
               <Textarea
+                id="ingredients"
                 rows={4}
                 placeholder="eggs, tortillas, beans, portable stove…"
                 value={ingredients}
@@ -403,12 +413,13 @@ const Planner = () => {
                 className="flex gap-2"
               >
                 <Input
+                  aria-label="Ask the campfire assistant"
                   placeholder="What can I cook with limited water?"
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   disabled={chatLoading}
                 />
-                <Button type="submit" disabled={chatLoading} className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                <Button type="submit" disabled={chatLoading} aria-label="Send message" className="bg-accent hover:bg-accent/90 text-accent-foreground">
                   <Send className="w-4 h-4" />
                 </Button>
               </form>

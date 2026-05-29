@@ -1,0 +1,10 @@
+# Campfire Chef AI
+
+> AI-powered camping and RV meal planner. Generates outdoor-friendly meal plans, grocery lists, and printable PDFs tailored to your gear, group size, budget, and storage.
+
+Campfire Chef AI helps campers, van lifers, hikers, and RV travelers plan stress-free outdoor cooking. The AI accounts for available equipment (campfire, stove, grill), fuel efficiency, water limits, and refrigeration constraints.
+
+## Pages
+
+- [Home](/): Overview of the AI meal planner, features, supported trip modes, and free email starter pack.
+- [Meal Planner](/planner): Interactive tool that generates multi-day camp menus, ingredient-based recipe ideas, and a campfire cooking assistant chat.
