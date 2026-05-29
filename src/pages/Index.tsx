@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Flame, Tent, Caravan, Mountain, Users, Sparkles, Clock,
   ShoppingBasket, FileDown, MessageCircle, ArrowRight, Leaf, DollarSign,
@@ -41,6 +43,14 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <Helmet>
+        <title>Campfire Chef AI — AI Camping & RV Meal Planner</title>
+        <meta name="description" content="Plan your entire camping menu in 30 seconds. AI-powered meal plans, grocery lists, and printable PDFs for tents, RVs, and backpacking trips." />
+        <link rel="canonical" href="https://campfirechefai.lovable.app/" />
+        <meta property="og:title" content="Campfire Chef AI — AI Camping & RV Meal Planner" />
+        <meta property="og:description" content="Stress-free outdoor cooking. Perfect meals for campfires, RV trips, and adventure travel." />
+        <meta property="og:url" content="https://campfirechefai.lovable.app/" />
+      </Helmet>
       {/* Nav */}
       <header className="absolute top-0 inset-x-0 z-20">
         <div className="container mx-auto px-4 py-5 flex items-center justify-between">
@@ -197,7 +207,9 @@ const Index = () => {
                 onSubmit={handleSubscribe}
                 className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto"
               >
+                <Label htmlFor="email-capture" className="sr-only">Email address</Label>
                 <Input
+                  id="email-capture"
                   type="email"
                   required
                   placeholder="your@email.com"
