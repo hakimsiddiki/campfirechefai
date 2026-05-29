@@ -53,7 +53,20 @@ const Planner = () => {
   // Ingredient ideas
   const [ingredients, setIngredients] = useState("");
   const [ideasLoading, setIdeasLoading] = useState(false);
-  const [ideas, setIdeas] = useState("");
+  const [ideas, setIdeas] = useState<null | {
+    intro: string;
+    ideas: {
+      name: string;
+      emoji: string;
+      imageQuery: string;
+      timeMinutes: number;
+      difficulty: string;
+      tagline: string;
+      ingredients: string[];
+      steps: string[];
+      proTip?: string;
+    }[];
+  }>(null);
 
   // Chat
   const [chatInput, setChatInput] = useState("");
@@ -93,14 +106,14 @@ const Planner = () => {
       return;
     }
     setIdeasLoading(true);
-    setIdeas("");
+    setIdeas(null);
     try {
       const { data, error } = await supabase.functions.invoke("plan-meals", {
         body: { mode: "ingredient_ideas", ingredients, campingMode },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      setIdeas(data.text);
+      setIdeas(data.ideas);
     } catch (e) {
       handleApiError(e);
     } finally {
@@ -391,8 +404,64 @@ const Planner = () => {
               </Button>
             </div>
             {ideas && (
-              <div className="p-6 rounded-2xl bg-card border border-border shadow-soft whitespace-pre-wrap text-sm leading-relaxed">
-                {ideas}
+              <div className="space-y-5 animate-in fade-in duration-500">
+                {ideas.intro && (
+                  <p className="text-base text-foreground/90 px-1">{ideas.intro}</p>
+                )}
+                <div className="grid sm:grid-cols-2 gap-5">
+                  {ideas.ideas.map((r, i) => {
+                    const img = `https://source.unsplash.com/featured/600x400/?${encodeURIComponent(r.imageQuery + ",food")}`;
+                    return (
+                      <article key={i} className="rounded-2xl bg-card border border-border shadow-soft overflow-hidden hover:shadow-warm transition-all duration-300">
+                        <div className="relative aspect-[3/2] bg-secondary overflow-hidden">
+                          <img
+                            src={img}
+                            alt={`${r.name} — camp meal photo`}
+                            loading="lazy"
+                            className="w-full h-full object-cover"
+                            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                          />
+                          <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-background/90 backdrop-blur text-xs font-bold">
+                            {r.emoji} {r.difficulty}
+                          </span>
+                          <span className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-accent text-accent-foreground text-xs font-bold">
+                            <Clock className="w-3 h-3 inline mr-1" />{r.timeMinutes}m
+                          </span>
+                        </div>
+                        <div className="p-5 space-y-3">
+                          <div>
+                            <h3 className="text-lg font-extrabold leading-tight">{r.name}</h3>
+                            <p className="text-sm text-muted-foreground italic mt-0.5">{r.tagline}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold uppercase tracking-wider text-primary mb-1.5">Ingredients</p>
+                            <ul className="flex flex-wrap gap-1.5">
+                              {r.ingredients.map((it, j) => (
+                                <li key={j} className="px-2 py-0.5 rounded-md bg-secondary text-xs">{it}</li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold uppercase tracking-wider text-primary mb-1.5">Steps</p>
+                            <ul className="space-y-1.5 text-sm">
+                              {r.steps.map((s, j) => (
+                                <li key={j} className="flex gap-2">
+                                  <span className="text-accent font-bold shrink-0">{j + 1}.</span>
+                                  <span>{s}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          {r.proTip && (
+                            <div className="text-xs bg-accent/10 border border-accent/30 rounded-lg p-2.5">
+                              <span className="font-bold text-accent">🔥 Pro tip: </span>{r.proTip}
+                            </div>
+                          )}
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </TabsContent>
