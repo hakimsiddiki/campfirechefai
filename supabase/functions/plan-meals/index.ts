@@ -35,8 +35,8 @@ Deno.serve(async (req) => {
 
     if (mode === "ingredient_ideas") {
       systemPrompt =
-        "You are Campfire Chef, an outdoor cooking expert. Suggest 5 realistic camp meal ideas using only the user's available ingredients and equipment. Be concrete and practical.";
-      userPrompt = `Ingredients & gear I have: ${ingredients}\nCamping mode: ${campingMode}\nGenerate 5 meal ideas.`;
+        "You are Campfire Chef — a warm, friendly outdoor cooking buddy. Suggest realistic camp meals using ONLY the user's ingredients and gear. Keep tone cheerful and conversational (like talking to a friend at the campsite). Steps must be short, scannable bullets — never long paragraphs. Use simple home-kitchen words. Return via the provided tool.";
+      userPrompt = `Ingredients & gear I have: ${ingredients}\nCamping mode: ${campingMode}\nGive me 5 quick, doable meal ideas with crisp bullet steps.`;
     } else if (mode === "chat") {
       systemPrompt =
         "You are Campfire Chef Assistant — a friendly, practical outdoor cooking expert. Give concise, useful answers about camp cooking, food safety, gear, and trip planning. Use short paragraphs and bullet points.";
@@ -68,7 +68,45 @@ Return JSON via the provided tool.`;
       ],
     };
 
-    if (mode === "meal_plan") {
+    if (mode === "ingredient_ideas") {
+      body.tools = [
+        {
+          type: "function",
+          function: {
+            name: "return_ideas",
+            description: "Return friendly camp meal ideas with short bullet steps.",
+            parameters: {
+              type: "object",
+              properties: {
+                intro: { type: "string", description: "One warm friendly sentence to open." },
+                ideas: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      name: { type: "string", description: "Catchy short recipe name" },
+                      emoji: { type: "string", description: "One food emoji" },
+                      imageQuery: { type: "string", description: "2-4 word search query describing the dish for a stock food photo, e.g. 'fried egg rice bowl'" },
+                      timeMinutes: { type: "number" },
+                      difficulty: { type: "string", description: "Easy / Medium / Hard" },
+                      tagline: { type: "string", description: "One sensory line — aroma, taste, vibe." },
+                      ingredients: { type: "array", items: { type: "string" } },
+                      steps: { type: "array", items: { type: "string" }, description: "3-6 short imperative bullets, each under 18 words." },
+                      proTip: { type: "string" },
+                    },
+                    required: ["name", "emoji", "imageQuery", "timeMinutes", "difficulty", "tagline", "ingredients", "steps"],
+                    additionalProperties: false,
+                  },
+                },
+              },
+              required: ["intro", "ideas"],
+              additionalProperties: false,
+            },
+          },
+        },
+      ];
+      body.tool_choice = { type: "function", function: { name: "return_ideas" } };
+    } else if (mode === "meal_plan") {
       body.tools = [
         {
           type: "function",
@@ -172,6 +210,15 @@ Return JSON via the provided tool.`;
       if (!toolCall) throw new Error("No structured plan returned");
       const plan = JSON.parse(toolCall.function.arguments);
       return new Response(JSON.stringify({ plan }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (mode === "ingredient_ideas") {
+      const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+      if (!toolCall) throw new Error("No ideas returned");
+      const ideas = JSON.parse(toolCall.function.arguments);
+      return new Response(JSON.stringify({ ideas }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
