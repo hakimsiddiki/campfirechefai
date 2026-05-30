@@ -63,6 +63,12 @@ const Planner = () => {
       difficulty: string;
       tagline: string;
       ingredients: string[];
+      seasonings: string[];
+      cookware: string[];
+      badges: string[];
+      calories: number;
+      proteinGrams: number;
+      storageTip: string;
       steps: string[];
       proTip?: string;
     }[];
