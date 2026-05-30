@@ -201,7 +201,20 @@ const Planner = () => {
     addText("Storage Tips", { size: 16, bold: true, gap: 6, color: [200, 80, 30] });
     plan.storageTips.forEach((p) => addText("• " + p, { size: 11, gap: 3 }));
 
-    doc.save(`${plan.title.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.pdf`);
+    const filename = `${plan.title.replace(/[^a-z0-9]+/gi, "-").toLowerCase() || "campfire-meal-plan"}.pdf`;
+    try {
+      const blob = doc.output("blob");
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    } catch {
+      doc.save(filename);
+    }
   };
 
   return (
