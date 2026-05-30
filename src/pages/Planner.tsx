@@ -63,6 +63,12 @@ const Planner = () => {
       difficulty: string;
       tagline: string;
       ingredients: string[];
+      seasonings: string[];
+      cookware: string[];
+      badges: string[];
+      calories: number;
+      proteinGrams: number;
+      storageTip: string;
       steps: string[];
       proTip?: string;
     }[];
@@ -410,7 +416,9 @@ const Planner = () => {
                 )}
                 <div className="grid sm:grid-cols-2 gap-5">
                   {ideas.ideas.map((r, i) => {
-                    const img = `https://source.unsplash.com/featured/600x400/?${encodeURIComponent(r.imageQuery + ",food")}`;
+                    const img = `https://image.pollinations.ai/prompt/${encodeURIComponent(
+                      `${r.imageQuery}, camping food photography, overhead shot, natural light, rustic, appetizing`
+                    )}?width=600&height=400&nologo=true&seed=${i + 1}`;
                     return (
                       <article key={i} className="rounded-2xl bg-card border border-border shadow-soft overflow-hidden hover:shadow-warm transition-all duration-300">
                         <div className="relative aspect-[3/2] bg-secondary overflow-hidden">
@@ -419,7 +427,6 @@ const Planner = () => {
                             alt={`${r.name} — camp meal photo`}
                             loading="lazy"
                             className="w-full h-full object-cover"
-                            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
                           />
                           <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-background/90 backdrop-blur text-xs font-bold">
                             {r.emoji} {r.difficulty}
@@ -433,6 +440,29 @@ const Planner = () => {
                             <h3 className="text-lg font-extrabold leading-tight">{r.name}</h3>
                             <p className="text-sm text-muted-foreground italic mt-0.5">{r.tagline}</p>
                           </div>
+                          {r.badges?.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5">
+                              {r.badges.map((b, j) => (
+                                <span key={j} className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-bold uppercase tracking-wide">
+                                  {b}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          <div className="grid grid-cols-3 gap-2 text-center">
+                            <div className="rounded-lg bg-secondary/60 py-1.5">
+                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Calories</p>
+                              <p className="text-sm font-bold">{r.calories}</p>
+                            </div>
+                            <div className="rounded-lg bg-secondary/60 py-1.5">
+                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Protein</p>
+                              <p className="text-sm font-bold">{r.proteinGrams}g</p>
+                            </div>
+                            <div className="rounded-lg bg-secondary/60 py-1.5">
+                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Level</p>
+                              <p className="text-sm font-bold">{r.difficulty}</p>
+                            </div>
+                          </div>
                           <div>
                             <p className="text-xs font-bold uppercase tracking-wider text-primary mb-1.5">Ingredients</p>
                             <ul className="flex flex-wrap gap-1.5">
@@ -441,6 +471,22 @@ const Planner = () => {
                               ))}
                             </ul>
                           </div>
+                          {r.seasonings?.length > 0 && (
+                            <div>
+                              <p className="text-xs font-bold uppercase tracking-wider text-primary mb-1.5">Seasonings</p>
+                              <ul className="flex flex-wrap gap-1.5">
+                                {r.seasonings.map((it, j) => (
+                                  <li key={j} className="px-2 py-0.5 rounded-md bg-accent/10 text-accent-foreground/90 text-xs border border-accent/20">{it}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {r.cookware?.length > 0 && (
+                            <div>
+                              <p className="text-xs font-bold uppercase tracking-wider text-primary mb-1.5">Cookware</p>
+                              <p className="text-sm text-foreground/80">{r.cookware.join(" · ")}</p>
+                            </div>
+                          )}
                           <div>
                             <p className="text-xs font-bold uppercase tracking-wider text-primary mb-1.5">Steps</p>
                             <ul className="space-y-1.5 text-sm">
@@ -452,6 +498,11 @@ const Planner = () => {
                               ))}
                             </ul>
                           </div>
+                          {r.storageTip && (
+                            <div className="text-xs bg-secondary/70 rounded-lg p-2.5">
+                              <span className="font-bold">📦 Storage: </span>{r.storageTip}
+                            </div>
+                          )}
                           {r.proTip && (
                             <div className="text-xs bg-accent/10 border border-accent/30 rounded-lg p-2.5">
                               <span className="font-bold text-accent">🔥 Pro tip: </span>{r.proTip}

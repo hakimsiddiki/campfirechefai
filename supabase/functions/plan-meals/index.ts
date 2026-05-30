@@ -35,8 +35,21 @@ Deno.serve(async (req) => {
 
     if (mode === "ingredient_ideas") {
       systemPrompt =
-        "You are Campfire Chef — a warm, friendly outdoor cooking buddy. Suggest realistic camp meals using ONLY the user's ingredients and gear. Keep tone cheerful and conversational (like talking to a friend at the campsite). Steps must be short, scannable bullets — never long paragraphs. Use simple home-kitchen words. Return via the provided tool.";
-      userPrompt = `Ingredients & gear I have: ${ingredients}\nCamping mode: ${campingMode}\nGive me 5 quick, doable meal ideas with crisp bullet steps.`;
+        `You are Campfire Chef — a warm, friendly outdoor cooking buddy.
+
+RULES (must follow strictly):
+- Suggest realistic camp meals using ONLY the user's ingredients (plus pantry basics: salt, oil, water, butter if reasonable).
+- REJECT weird or unappetizing combinations. If the user's ingredients can't reasonably make 5 good meals, return fewer (minimum 2). Quality over quantity.
+- Write like a real human friend at the campsite — warm, simple, sensory (aroma, crisp, golden, smoky). Never sound like AI.
+- BANNED phrases — never use: "add acid", "satisfying meal", "packed start", "flavor profile", "elevate", "delicious meal", "perfect for", "burst of flavor".
+- Steps must be short imperative bullets (max ~16 words). Each step includes a realistic time like "(2 min)" at the end.
+- Always include common seasonings the user likely has (salt, black pepper, garlic powder, soy sauce, hot sauce, etc.) under \`seasonings\`.
+- Always list the cookware needed (skillet, pot, campfire grate, foil, spatula, etc.).
+- Add 1–3 recipe badges from this fixed list ONLY: "High Protein", "One Pan", "Budget Meal", "Kid Friendly", "Quick", "No Fridge", "Vegetarian".
+- Give realistic estimated calories and protein per serving.
+- Add a short, practical storage tip (leftovers, cooler, dry bag).
+Return everything via the provided tool.`;
+      userPrompt = `Ingredients & gear I have: ${ingredients}\nCamping mode: ${campingMode}\nGive me up to 5 quick, doable meal ideas. Reject any that wouldn't actually taste good with these ingredients.`;
     } else if (mode === "chat") {
       systemPrompt =
         "You are Campfire Chef Assistant — a friendly, practical outdoor cooking expert. Give concise, useful answers about camp cooking, food safety, gear, and trip planning. Use short paragraphs and bullet points.";
@@ -91,10 +104,16 @@ Return JSON via the provided tool.`;
                       difficulty: { type: "string", description: "Easy / Medium / Hard" },
                       tagline: { type: "string", description: "One sensory line — aroma, taste, vibe." },
                       ingredients: { type: "array", items: { type: "string" } },
-                      steps: { type: "array", items: { type: "string" }, description: "3-6 short imperative bullets, each under 18 words." },
+                      seasonings: { type: "array", items: { type: "string" }, description: "Common seasonings used (e.g. salt, black pepper, garlic powder, soy sauce, hot sauce)." },
+                      cookware: { type: "array", items: { type: "string" }, description: "Cookware needed (skillet, pot, campfire grate, foil, etc.)" },
+                      badges: { type: "array", items: { type: "string", enum: ["High Protein", "One Pan", "Budget Meal", "Kid Friendly", "Quick", "No Fridge", "Vegetarian"] }, description: "1–3 recipe badges." },
+                      calories: { type: "number", description: "Estimated calories per serving." },
+                      proteinGrams: { type: "number", description: "Estimated protein grams per serving." },
+                      storageTip: { type: "string", description: "Short practical leftover/storage tip." },
+                      steps: { type: "array", items: { type: "string" }, description: "3-6 short imperative bullets. Each step MUST end with a time in parentheses, e.g. 'Heat the skillet over medium coals. (2 min)'." },
                       proTip: { type: "string" },
                     },
-                    required: ["name", "emoji", "imageQuery", "timeMinutes", "difficulty", "tagline", "ingredients", "steps"],
+                    required: ["name", "emoji", "imageQuery", "timeMinutes", "difficulty", "tagline", "ingredients", "seasonings", "cookware", "badges", "calories", "proteinGrams", "storageTip", "steps"],
                     additionalProperties: false,
                   },
                 },
