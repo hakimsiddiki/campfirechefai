@@ -173,33 +173,33 @@ const Planner = () => {
     if (plan.totalEstimatedCost) addText(`Estimated cost: ${plan.totalEstimatedCost}`, { size: 11, bold: true, gap: 4 });
     if (plan.fuelTip) addText(`Fuel tip: ${plan.fuelTip}`, { size: 11, gap: 10, color: [80, 80, 80] });
 
-    plan.days.forEach((d) => {
+    (plan.days || []).forEach((d) => {
       y += 6;
       addText(`Day ${d.day}`, { size: 16, bold: true, gap: 6, color: [30, 80, 50] });
-      d.meals.forEach((m) => {
+      (d.meals || []).forEach((m) => {
         addText(`${m.type}: ${m.name}`, { size: 13, bold: true, gap: 4 });
         addText(`Prep ${m.prepMinutes}m · Cook ${m.cookMinutes}m · Cleanup: ${m.cleanup}`, { size: 10, color: [110, 110, 110], gap: 4 });
-        addText("Ingredients: " + m.ingredients.join(", "), { size: 10, gap: 4 });
-        m.instructions.forEach((step, i) => addText(`${i + 1}. ${step}`, { size: 10, gap: 3 }));
+        addText("Ingredients: " + (m.ingredients || []).join(", "), { size: 10, gap: 4 });
+        (m.instructions || []).forEach((step, i) => addText(`${i + 1}. ${step}`, { size: 10, gap: 3 }));
         y += 4;
       });
     });
 
     doc.addPage(); y = margin;
     addText("Grocery List", { size: 20, bold: true, gap: 8, color: [30, 80, 50] });
-    plan.groceryList.forEach((g) => {
+    (plan.groceryList || []).forEach((g) => {
       addText(g.category, { size: 13, bold: true, gap: 4 });
-      g.items.forEach((it) => addText("• " + it, { size: 11, gap: 3 }));
+      (g.items || []).forEach((it) => addText("• " + it, { size: 11, gap: 3 }));
       y += 4;
     });
 
     y += 8;
     addText("Prep Checklist", { size: 16, bold: true, gap: 6, color: [200, 80, 30] });
-    plan.prepChecklist.forEach((p) => addText("☐ " + p, { size: 11, gap: 3 }));
+    (plan.prepChecklist || []).forEach((p) => addText("☐ " + p, { size: 11, gap: 3 }));
 
     y += 8;
     addText("Storage Tips", { size: 16, bold: true, gap: 6, color: [200, 80, 30] });
-    plan.storageTips.forEach((p) => addText("• " + p, { size: 11, gap: 3 }));
+    (plan.storageTips || []).forEach((p) => addText("• " + p, { size: 11, gap: 3 }));
 
     const filename = `${plan.title.replace(/[^a-z0-9]+/gi, "-").toLowerCase() || "campfire-meal-plan"}.pdf`;
     try {
