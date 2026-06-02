@@ -149,71 +149,76 @@ const Planner = () => {
 
   const downloadPdf = () => {
     if (!plan) return;
-    const doc = new jsPDF({ unit: "pt", format: "letter" });
-    const pageW = doc.internal.pageSize.getWidth();
-    const margin = 48;
-    let y = margin;
+    try {
+      const doc = new jsPDF({ unit: "pt", format: "letter" });
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const margin = 48;
+      let y = margin;
 
-    const addText = (text: string, opts: { size?: number; bold?: boolean; gap?: number; color?: [number, number, number] } = {}) => {
-      const { size = 11, bold = false, gap = 4, color = [30, 30, 30] } = opts;
-      doc.setFont("helvetica", bold ? "bold" : "normal");
-      doc.setFontSize(size);
-      doc.setTextColor(...color);
-      const lines = doc.splitTextToSize(text, pageW - margin * 2);
-      lines.forEach((ln: string) => {
-        if (y > 740) { doc.addPage(); y = margin; }
-        doc.text(ln, margin, y);
-        y += size + gap;
+      const addText = (
+        text: string,
+        opts: { size?: number; bold?: boolean; gap?: number; color?: [number, number, number] } = {},
+      ) => {
+        const { size = 11, bold = false, gap = 4, color = [30, 30, 30] } = opts;
+        doc.setFont("helvetica", bold ? "bold" : "normal");
+        doc.setFontSize(size);
+        doc.setTextColor(color[0], color[1], color[2]);
+        const lines = doc.splitTextToSize(String(text ?? ""), pageW - margin * 2);
+        lines.forEach((ln: string) => {
+          if (y > pageH - margin) {
+            doc.addPage();
+            y = margin;
+          }
+          doc.text(ln, margin, y);
+          y += size + gap;
+        });
+      };
+
+      addText("Campfire Chef AI", { size: 10, color: [200, 80, 30], bold: true, gap: 2 });
+      addText(plan.title || "Camp Meal Plan", { size: 22, bold: true, gap: 8 });
+      if (plan.summary) addText(plan.summary, { size: 11, gap: 10, color: [80, 80, 80] });
+      if (plan.totalEstimatedCost) addText(`Estimated cost: ${plan.totalEstimatedCost}`, { size: 11, bold: true, gap: 4 });
+      if (plan.fuelTip) addText(`Fuel tip: ${plan.fuelTip}`, { size: 11, gap: 10, color: [80, 80, 80] });
+
+      (plan.days || []).forEach((d) => {
+        y += 6;
+        addText(`Day ${d.day}`, { size: 16, bold: true, gap: 6, color: [30, 80, 50] });
+        (d.meals || []).forEach((m) => {
+          addText(`${m.type}: ${m.name}`, { size: 13, bold: true, gap: 4 });
+          addText(`Prep ${m.prepMinutes ?? 0}m · Cook ${m.cookMinutes ?? 0}m · Cleanup: ${m.cleanup ?? "-"}`, { size: 10, color: [110, 110, 110], gap: 4 });
+          addText("Ingredients: " + (m.ingredients || []).join(", "), { size: 10, gap: 4 });
+          (m.instructions || []).forEach((step, i) => addText(`${i + 1}. ${step}`, { size: 10, gap: 3 }));
+          y += 4;
+        });
       });
-    };
 
-    addText("Campfire Chef AI", { size: 10, color: [200, 80, 30], bold: true, gap: 2 });
-    addText(plan.title, { size: 22, bold: true, gap: 8 });
-    addText(plan.summary, { size: 11, gap: 10, color: [80, 80, 80] });
-    if (plan.totalEstimatedCost) addText(`Estimated cost: ${plan.totalEstimatedCost}`, { size: 11, bold: true, gap: 4 });
-    if (plan.fuelTip) addText(`Fuel tip: ${plan.fuelTip}`, { size: 11, gap: 10, color: [80, 80, 80] });
-
-    (plan.days || []).forEach((d) => {
-      y += 6;
-      addText(`Day ${d.day}`, { size: 16, bold: true, gap: 6, color: [30, 80, 50] });
-      (d.meals || []).forEach((m) => {
-        addText(`${m.type}: ${m.name}`, { size: 13, bold: true, gap: 4 });
-        addText(`Prep ${m.prepMinutes}m · Cook ${m.cookMinutes}m · Cleanup: ${m.cleanup}`, { size: 10, color: [110, 110, 110], gap: 4 });
-        addText("Ingredients: " + (m.ingredients || []).join(", "), { size: 10, gap: 4 });
-        (m.instructions || []).forEach((step, i) => addText(`${i + 1}. ${step}`, { size: 10, gap: 3 }));
+      doc.addPage();
+      y = margin;
+      addText("Grocery List", { size: 20, bold: true, gap: 8, color: [30, 80, 50] });
+      (plan.groceryList || []).forEach((g) => {
+        addText(g.category, { size: 13, bold: true, gap: 4 });
+        (g.items || []).forEach((it) => addText("• " + it, { size: 11, gap: 3 }));
         y += 4;
       });
-    });
 
-    doc.addPage(); y = margin;
-    addText("Grocery List", { size: 20, bold: true, gap: 8, color: [30, 80, 50] });
-    (plan.groceryList || []).forEach((g) => {
-      addText(g.category, { size: 13, bold: true, gap: 4 });
-      (g.items || []).forEach((it) => addText("• " + it, { size: 11, gap: 3 }));
-      y += 4;
-    });
+      y += 8;
+      addText("Prep Checklist", { size: 16, bold: true, gap: 6, color: [200, 80, 30] });
+      (plan.prepChecklist || []).forEach((p) => addText("[ ] " + p, { size: 11, gap: 3 }));
 
-    y += 8;
-    addText("Prep Checklist", { size: 16, bold: true, gap: 6, color: [200, 80, 30] });
-    (plan.prepChecklist || []).forEach((p) => addText("☐ " + p, { size: 11, gap: 3 }));
+      y += 8;
+      addText("Storage Tips", { size: 16, bold: true, gap: 6, color: [200, 80, 30] });
+      (plan.storageTips || []).forEach((p) => addText("• " + p, { size: 11, gap: 3 }));
 
-    y += 8;
-    addText("Storage Tips", { size: 16, bold: true, gap: 6, color: [200, 80, 30] });
-    (plan.storageTips || []).forEach((p) => addText("• " + p, { size: 11, gap: 3 }));
+      const safeTitle = (plan.title || "campfire-meal-plan").replace(/[^a-z0-9]+/gi, "-").toLowerCase();
+      const filename = `${safeTitle || "campfire-meal-plan"}.pdf`;
 
-    const filename = `${plan.title.replace(/[^a-z0-9]+/gi, "-").toLowerCase() || "campfire-meal-plan"}.pdf`;
-    try {
-      const blob = doc.output("blob");
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 4000);
-    } catch {
+      // Primary: native jsPDF save (most reliable on desktop)
       doc.save(filename);
+      toast.success("PDF downloaded");
+    } catch (err) {
+      console.error("PDF download failed:", err);
+      toast.error("Couldn't generate PDF — please try again.");
     }
   };
 
@@ -429,9 +434,12 @@ const Planner = () => {
                 )}
                 <div className="grid sm:grid-cols-2 gap-5">
                   {ideas.ideas.map((r, i) => {
+                    const query = r.imageQuery || r.name;
                     const img = `https://image.pollinations.ai/prompt/${encodeURIComponent(
-                      `${r.imageQuery}, camping food photography, overhead shot, natural light, rustic, appetizing`
-                    )}?width=600&height=400&nologo=true&seed=${i + 1}`;
+                      `${query}, food photography, overhead shot, natural light, rustic plate, appetizing, real photo`,
+                    )}?width=600&height=400&nologo=true&seed=${i + 7}`;
+                    const fallback = `https://source.unsplash.com/600x400/?${encodeURIComponent(query + ",food")}`;
+                    const finalFallback = `https://placehold.co/600x400/2d5a3d/ffffff?text=${encodeURIComponent(r.name)}`;
                     return (
                       <article key={i} className="rounded-2xl bg-card border border-border shadow-soft overflow-hidden hover:shadow-warm transition-all duration-300">
                         <div className="relative aspect-[3/2] bg-secondary overflow-hidden">
@@ -440,6 +448,16 @@ const Planner = () => {
                             alt={`${r.name} — camp meal photo`}
                             loading="lazy"
                             className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const el = e.currentTarget;
+                              if (el.dataset.fallback === "1") {
+                                el.dataset.fallback = "2";
+                                el.src = finalFallback;
+                              } else if (!el.dataset.fallback) {
+                                el.dataset.fallback = "1";
+                                el.src = fallback;
+                              }
+                            }}
                           />
                           <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-background/90 backdrop-blur text-xs font-bold">
                             {r.emoji} {r.difficulty}
