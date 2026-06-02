@@ -434,9 +434,12 @@ const Planner = () => {
                 )}
                 <div className="grid sm:grid-cols-2 gap-5">
                   {ideas.ideas.map((r, i) => {
+                    const query = r.imageQuery || r.name;
                     const img = `https://image.pollinations.ai/prompt/${encodeURIComponent(
-                      `${r.imageQuery}, camping food photography, overhead shot, natural light, rustic, appetizing`
-                    )}?width=600&height=400&nologo=true&seed=${i + 1}`;
+                      `${query}, food photography, overhead shot, natural light, rustic plate, appetizing, real photo`,
+                    )}?width=600&height=400&nologo=true&seed=${i + 7}`;
+                    const fallback = `https://source.unsplash.com/600x400/?${encodeURIComponent(query + ",food")}`;
+                    const finalFallback = `https://placehold.co/600x400/2d5a3d/ffffff?text=${encodeURIComponent(r.name)}`;
                     return (
                       <article key={i} className="rounded-2xl bg-card border border-border shadow-soft overflow-hidden hover:shadow-warm transition-all duration-300">
                         <div className="relative aspect-[3/2] bg-secondary overflow-hidden">
@@ -445,6 +448,16 @@ const Planner = () => {
                             alt={`${r.name} — camp meal photo`}
                             loading="lazy"
                             className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const el = e.currentTarget;
+                              if (el.dataset.fallback === "1") {
+                                el.dataset.fallback = "2";
+                                el.src = finalFallback;
+                              } else if (!el.dataset.fallback) {
+                                el.dataset.fallback = "1";
+                                el.src = fallback;
+                              }
+                            }}
                           />
                           <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-background/90 backdrop-blur text-xs font-bold">
                             {r.emoji} {r.difficulty}
