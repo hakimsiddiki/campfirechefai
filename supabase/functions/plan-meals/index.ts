@@ -34,6 +34,24 @@ Deno.serve(async (req) => {
     let userPrompt = "";
 
     if (mode === "ingredient_ideas") {
+      // Pre-validation of user input — reject empty/nonsense submissions before spending a call.
+      const cleanedIngredients = String(ingredients || "").trim();
+      const letterCount = (cleanedIngredients.match(/[a-zA-Z]/g) || []).length;
+      if (cleanedIngredients.length < 3 || letterCount < 3) {
+        return new Response(
+          JSON.stringify({ error: "Please list at least one real ingredient (e.g. eggs, rice, beans)." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+      // Block obviously non-food / unsafe inputs.
+      const blockedInput = /(petrol|gasoline|bleach|soap|plastic|battery|poison|raw chicken liver shake|cigarette)/i;
+      if (blockedInput.test(cleanedIngredients)) {
+        return new Response(
+          JSON.stringify({ error: "Some items don't look safe or edible. Please list real food ingredients." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+
       systemPrompt =
         `You are Campfire Chef — a warm, friendly outdoor cooking buddy.
 
@@ -241,6 +259,46 @@ Return JSON via the provided tool.`;
       const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
       if (!toolCall) throw new Error("No ideas returned");
       const ideas = JSON.parse(toolCall.function.arguments);
+
+      // Post-validation: filter out unrealistic recipes (impossible gear, weird combos, absurd times).
+      const gearLower = String(equipment || "").toLowerCase();
+      const hasOven = /oven|dutch oven|camp oven/.test(gearLower);
+      const hasMicrowave = /microwave/.test(gearLower);
+      const hasBlender = /blender/.test(gearLower);
+      const bannedStepPhrases = [
+        "add acid", "satisfying meal", "packed start", "flavor profile",
+        "elevate", "delicious meal", "burst of flavor", "sous vide", "deep fry",
+      ];
+      const weirdCombos: Array<[RegExp, RegExp]> = [
+        [/\bfish\b|\btuna\b|\bsalmon\b/i, /\bchocolate\b|\bjam\b|\bnutella\b/i],
+        [/\bice cream\b/i, /\bbeans\b|\brice\b|\bfish\b/i],
+        [/\braw flour\b/i, /./],
+      ];
+      const isRealisticIdea = (r: any): boolean => {
+        if (!r || !Array.isArray(r.steps) || r.steps.length === 0) return false;
+        if (!Array.isArray(r.ingredients) || r.ingredients.length === 0) return false;
+        if (typeof r.timeMinutes === "number" && (r.timeMinutes < 2 || r.timeMinutes > 180)) return false;
+        const stepsText = r.steps.join(" ").toLowerCase();
+        if (!hasOven && /\boven\b|\bbake\b|\bbaking\b/.test(stepsText)) return false;
+        if (!hasMicrowave && /\bmicrowave\b/.test(stepsText)) return false;
+        if (!hasBlender && /\bblender\b|\bblend until\b/.test(stepsText)) return false;
+        if (bannedStepPhrases.some((p) => stepsText.includes(p))) return false;
+        const ingText = r.ingredients.join(" ").toLowerCase();
+        for (const [a, b] of weirdCombos) {
+          if (a.test(ingText) && b.test(ingText)) return false;
+        }
+        return true;
+      };
+      if (Array.isArray(ideas?.ideas)) {
+        ideas.ideas = ideas.ideas.filter(isRealisticIdea);
+        if (ideas.ideas.length === 0) {
+          return new Response(
+            JSON.stringify({ error: "Couldn't find realistic recipes from those ingredients. Try adding a few more pantry items." }),
+            { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+      }
+
       return new Response(JSON.stringify({ ideas }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

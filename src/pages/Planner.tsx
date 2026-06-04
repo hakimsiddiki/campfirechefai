@@ -147,9 +147,40 @@ const Planner = () => {
     }
   };
 
-  const downloadPdf = () => {
-    if (!plan) return;
+  const fetchImageAsDataUrl = async (query: string): Promise<{ data: string; w: number; h: number } | null> => {
     try {
+      const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(
+        `${query}, food photography, overhead shot, natural light, rustic plate, appetizing, real photo`,
+      )}?width=600&height=400&nologo=true&seed=${Math.abs(query.length * 7 + 3)}`;
+      const res = await fetch(url);
+      if (!res.ok) return null;
+      const blob = await res.blob();
+      const dataUrl: string = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(new Error("read failed"));
+        reader.readAsDataURL(blob);
+      });
+      return { data: dataUrl, w: 600, h: 400 };
+    } catch {
+      return null;
+    }
+  };
+
+  const downloadPdf = async () => {
+    if (!plan) return;
+    const toastId = toast.loading("Preparing PDF with images…");
+    try {
+      // Pre-fetch one image per meal (in parallel, with safe fallbacks).
+      const allMeals: { key: string; name: string }[] = [];
+      (plan.days || []).forEach((d) => (d.meals || []).forEach((m) => {
+        allMeals.push({ key: `${d.day}-${m.type}-${m.name}`, name: m.name });
+      }));
+      const imageEntries = await Promise.all(
+        allMeals.map(async (m) => [m.key, await fetchImageAsDataUrl(m.name)] as const),
+      );
+      const imageMap = new Map(imageEntries);
+
       const doc = new jsPDF({ unit: "pt", format: "letter" });
       const pageW = doc.internal.pageSize.getWidth();
       const pageH = doc.internal.pageSize.getHeight();
@@ -186,6 +217,21 @@ const Planner = () => {
         addText(`Day ${d.day}`, { size: 16, bold: true, gap: 6, color: [30, 80, 50] });
         (d.meals || []).forEach((m) => {
           addText(`${m.type}: ${m.name}`, { size: 13, bold: true, gap: 4 });
+          const img = imageMap.get(`${d.day}-${m.type}-${m.name}`);
+          if (img) {
+            const imgW = 240;
+            const imgH = imgW * (img.h / img.w);
+            if (y + imgH > pageH - margin) {
+              doc.addPage();
+              y = margin;
+            }
+            try {
+              doc.addImage(img.data, "JPEG", margin, y, imgW, imgH, undefined, "FAST");
+              y += imgH + 8;
+            } catch (e) {
+              console.warn("addImage failed for", m.name, e);
+            }
+          }
           addText(`Prep ${m.prepMinutes ?? 0}m · Cook ${m.cookMinutes ?? 0}m · Cleanup: ${m.cleanup ?? "-"}`, { size: 10, color: [110, 110, 110], gap: 4 });
           addText("Ingredients: " + (m.ingredients || []).join(", "), { size: 10, gap: 4 });
           (m.instructions || []).forEach((step, i) => addText(`${i + 1}. ${step}`, { size: 10, gap: 3 }));
@@ -215,10 +261,10 @@ const Planner = () => {
 
       // Primary: native jsPDF save (most reliable on desktop)
       doc.save(filename);
-      toast.success("PDF downloaded");
+      toast.success("PDF downloaded with images", { id: toastId });
     } catch (err) {
       console.error("PDF download failed:", err);
-      toast.error("Couldn't generate PDF — please try again.");
+      toast.error("Couldn't generate PDF — please try again.", { id: toastId });
     }
   };
 
