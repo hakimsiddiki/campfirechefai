@@ -34,6 +34,24 @@ Deno.serve(async (req) => {
     let userPrompt = "";
 
     if (mode === "ingredient_ideas") {
+      // Pre-validation of user input — reject empty/nonsense submissions before spending a call.
+      const cleanedIngredients = String(ingredients || "").trim();
+      const letterCount = (cleanedIngredients.match(/[a-zA-Z]/g) || []).length;
+      if (cleanedIngredients.length < 3 || letterCount < 3) {
+        return new Response(
+          JSON.stringify({ error: "Please list at least one real ingredient (e.g. eggs, rice, beans)." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+      // Block obviously non-food / unsafe inputs.
+      const blockedInput = /(petrol|gasoline|bleach|soap|plastic|battery|poison|raw chicken liver shake|cigarette)/i;
+      if (blockedInput.test(cleanedIngredients)) {
+        return new Response(
+          JSON.stringify({ error: "Some items don't look safe or edible. Please list real food ingredients." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+
       systemPrompt =
         `You are Campfire Chef — a warm, friendly outdoor cooking buddy.
 
