@@ -55,9 +55,7 @@ const Index = () => {
       <header className="absolute top-0 inset-x-0 z-20">
         <div className="container mx-auto px-4 py-5 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 text-primary-foreground">
-            <span className="w-9 h-9 rounded-full bg-gradient-ember flex items-center justify-center shadow-warm">
-              <Flame className="w-5 h-5 text-accent-foreground" />
-            </span>
+            <img src="/logo.png" alt="Campfire Chef AI logo" width={36} height={36} className="w-9 h-9 rounded-full shadow-warm" />
             <span className="font-extrabold tracking-tight text-lg">Campfire Chef AI</span>
           </Link>
           <Link to="/planner">
@@ -234,9 +232,7 @@ const Index = () => {
       <footer className="border-t border-border py-10">
         <div className="container mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="w-7 h-7 rounded-full bg-gradient-ember flex items-center justify-center">
-              <Flame className="w-4 h-4 text-accent-foreground" />
-            </span>
+            <img src="/logo.png" alt="Campfire Chef AI logo" width={28} height={28} loading="lazy" className="w-7 h-7 rounded-full" />
             <span className="font-bold">Campfire Chef AI</span>
           </div>
           <p className="text-sm text-muted-foreground">
