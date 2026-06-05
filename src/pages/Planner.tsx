@@ -281,9 +281,7 @@ const Planner = () => {
       <header className="border-b border-border bg-card sticky top-0 z-10">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <span className="w-8 h-8 rounded-full bg-gradient-ember flex items-center justify-center">
-              <Flame className="w-4 h-4 text-accent-foreground" />
-            </span>
+            <img src="/logo.png" alt="Campfire Chef AI logo" width={32} height={32} className="w-8 h-8 rounded-full" />
             <span className="font-extrabold">Campfire Chef AI</span>
           </Link>
           <Link to="/">
