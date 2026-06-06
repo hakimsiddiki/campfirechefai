@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Flame, ArrowLeft, FileDown, Loader2, Sparkles, ShoppingBasket, ListChecks, Clock, MessageCircle, Send } from "lucide-react";
 import jsPDF from "jspdf";
+import { useAuth } from "@/hooks/useAuth";
 
 type Meal = {
   type: string;
@@ -37,6 +38,7 @@ type Plan = {
 const Planner = () => {
   const [params] = useSearchParams();
   const defaultTab = params.get("mode") === "ingredients" ? "ingredients" : params.get("mode") === "chat" ? "chat" : "plan";
+  const { user, subscription, signOut } = useAuth();
 
   // Plan form
   const [days, setDays] = useState(3);
@@ -284,9 +286,19 @@ const Planner = () => {
             <img src="/logo.png" alt="Campfire Chef AI logo" width={32} height={32} className="w-8 h-8 rounded-full" />
             <span className="font-extrabold">Campfire Chef AI</span>
           </Link>
-          <Link to="/">
-            <Button variant="ghost" size="sm"><ArrowLeft className="w-4 h-4 mr-1" /> Home</Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            {subscription?.plan && subscription.plan !== "free" && subscription.status === "active" && (
+              <span className="hidden sm:inline text-xs font-semibold uppercase tracking-wider text-primary">
+                {subscription.plan}
+              </span>
+            )}
+            <Link to="/pricing"><Button variant="ghost" size="sm">Pricing</Button></Link>
+            {user ? (
+              <Button variant="outline" size="sm" onClick={signOut}>Sign out</Button>
+            ) : (
+              <Link to="/auth?redirect=/planner"><Button size="sm">Sign in</Button></Link>
+            )}
+          </div>
         </div>
       </header>
 
