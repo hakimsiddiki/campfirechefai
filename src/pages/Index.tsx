@@ -58,11 +58,23 @@ const Index = () => {
             <img src="/logo.png" alt="Campfire Chef AI logo" width={36} height={36} className="w-9 h-9 rounded-full shadow-warm" />
             <span className="font-extrabold tracking-tight text-lg">Campfire Chef AI</span>
           </Link>
-          <Link to="/planner">
-            <Button size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-warm">
-              Plan a trip
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link to="/pricing">
+              <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10">
+                Pricing
+              </Button>
+            </Link>
+            <Link to="/auth">
+              <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10">
+                Sign in
+              </Button>
+            </Link>
+            <Link to="/planner">
+              <Button size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-warm">
+                Plan a trip
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
