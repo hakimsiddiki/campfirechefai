@@ -114,8 +114,9 @@ function PayPalCheckout({
   }, [ready, planKey, containerId, onSuccess]);
 
   return (
-    <div className="mt-4">
-      {!ready && <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="w-4 h-4 animate-spin" />Loading PayPal…</div>}
+    <div className="mt-6 p-3 rounded-xl bg-gradient-to-br from-accent/5 to-primary/5 border border-border">
+      <p className="text-xs text-center text-muted-foreground mb-2 font-medium">Secure checkout · Cancel anytime</p>
+      {!ready && <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground py-3"><Loader2 className="w-4 h-4 animate-spin" />Loading secure checkout…</div>}
       <div id={containerId} />
     </div>
   );
