@@ -25,6 +25,8 @@ type PlanCard = {
   yearlyKey?: string;
   monthly: string;
   yearly: string;
+  monthlyNum?: number;
+  yearlyNum?: number;
   perks: string[];
   featured?: boolean;
 };
@@ -44,6 +46,7 @@ const PLANS: PlanCard[] = [
     id: "pro", name: "Trailblazer", tagline: "For the regular outdoor cook",
     monthlyKey: "pro_monthly", yearlyKey: "pro_yearly",
     monthly: "$6.99", yearly: "$49",
+    monthlyNum: 6.99, yearlyNum: 49,
     featured: true,
     perks: [
       "Unlimited meal plans & recipes",
@@ -58,6 +61,7 @@ const PLANS: PlanCard[] = [
     id: "crew", name: "Crew", tagline: "Family & group trips",
     monthlyKey: "crew_monthly", yearlyKey: "crew_yearly",
     monthly: "$12.99", yearly: "$89",
+    monthlyNum: 12.99, yearlyNum: 89,
     perks: [
       "Everything in Trailblazer",
       "Up to 5 member accounts",
@@ -110,8 +114,9 @@ function PayPalCheckout({
   }, [ready, planKey, containerId, onSuccess]);
 
   return (
-    <div className="mt-4">
-      {!ready && <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="w-4 h-4 animate-spin" />Loading PayPal…</div>}
+    <div className="mt-6 p-3 rounded-xl bg-gradient-to-br from-accent/5 to-primary/5 border border-border">
+      <p className="text-xs text-center text-muted-foreground mb-2 font-medium">Secure checkout · Cancel anytime</p>
+      {!ready && <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground py-3"><Loader2 className="w-4 h-4 animate-spin" />Loading secure checkout…</div>}
       <div id={containerId} />
     </div>
   );
@@ -165,8 +170,27 @@ export default function Pricing() {
                   </CardTitle>
                   <CardDescription>{p.tagline}</CardDescription>
                   <div className="pt-3">
-                    <span className="text-4xl font-extrabold">{annual ? p.yearly : p.monthly}</span>
-                    <span className="text-muted-foreground ml-1">/ {annual ? "year" : "month"}</span>
+                    {annual && p.monthlyNum && p.yearlyNum ? (() => {
+                      const regular = +(p.monthlyNum * 12).toFixed(2);
+                      const pct = Math.round((1 - p.yearlyNum / regular) * 100);
+                      return (
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="text-muted-foreground line-through">${regular}</span>
+                            <Badge className="bg-accent text-accent-foreground">Save {pct}%</Badge>
+                          </div>
+                          <div>
+                            <span className="text-4xl font-extrabold">{p.yearly}</span>
+                            <span className="text-muted-foreground ml-1">/ year</span>
+                          </div>
+                        </div>
+                      );
+                    })() : (
+                      <>
+                        <span className="text-4xl font-extrabold">{annual ? p.yearly : p.monthly}</span>
+                        <span className="text-muted-foreground ml-1">/ {annual ? "year" : "month"}</span>
+                      </>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent>
