@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
     const data = await r.json();
     if (!r.ok || data.status !== "COMPLETED") {
       console.error("Capture failed", data);
-      return new Response(JSON.stringify({ error: "Capture failed", details: data }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "Payment capture failed. Please try again." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const customId: string = data.purchase_units?.[0]?.payments?.captures?.[0]?.custom_id

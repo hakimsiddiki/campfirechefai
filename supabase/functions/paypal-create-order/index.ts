@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
     const data = await r.json();
     if (!r.ok) {
       console.error("PayPal create order failed", data);
-      return new Response(JSON.stringify({ error: "PayPal error", details: data }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "Order creation failed. Please try again." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     return new Response(JSON.stringify({ id: data.id }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
