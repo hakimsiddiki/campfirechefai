@@ -60,18 +60,17 @@ const Index = () => {
           </Link>
           <div className="flex items-center gap-2">
             <Link to="/pricing">
-              <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10">
+              <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10 font-semibold">
                 Pricing
               </Button>
             </Link>
             <Link to="/auth">
-              <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10">
+              <Button
+                size="sm"
+                className="bg-gradient-ember text-accent-foreground font-bold shadow-warm hover:opacity-90 hover:shadow-lg transition-all border border-accent/40"
+              >
+                <Sparkles className="w-4 h-4" />
                 Sign in
-              </Button>
-            </Link>
-            <Link to="/planner">
-              <Button size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-warm">
-                Plan a trip
               </Button>
             </Link>
           </div>
