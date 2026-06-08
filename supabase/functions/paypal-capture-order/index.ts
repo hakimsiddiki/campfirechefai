@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const PAYPAL_BASE = "https://api-m.sandbox.paypal.com";
+const PAYPAL_BASE = "https://api-m.paypal.com";
 
 const PLAN_META: Record<string, { plan: string; cycle: string }> = {
   pro_monthly:  { plan: "pro",  cycle: "monthly" },
