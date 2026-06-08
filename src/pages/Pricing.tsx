@@ -15,7 +15,7 @@ declare global {
 }
 
 const PAYPAL_CLIENT_ID =
-  "ARoxtzRFI9Eh5AMbtnmrG-PoN8duJYTgWBocC953md3xxPB_bGQYIOmSg3fE-I37l1VCtYLuH9HJpJXc";
+  "ASdyDYM955LCzvjnPEPJcVYmDdbdt_3xCaRKJ6S_3dfDSy-ymfCGta_LC_V4UIGynTP04C-NI32wZTvp";
 
 type PlanCard = {
   id: "free" | "pro" | "crew";
