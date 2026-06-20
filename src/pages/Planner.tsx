@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -38,7 +38,11 @@ type Plan = {
 const Planner = () => {
   const [params] = useSearchParams();
   const defaultTab = params.get("mode") === "ingredients" ? "ingredients" : params.get("mode") === "chat" ? "chat" : "plan";
-  const { user, subscription, signOut } = useAuth();
+  const { user, subscription, signOut, loading: authLoading } = useAuth();
+
+  if (!authLoading && !user) {
+    return <Navigate to="/auth?next=/planner" replace />;
+  }
 
   // Plan form
   const [days, setDays] = useState(3);
