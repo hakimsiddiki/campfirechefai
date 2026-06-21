@@ -671,11 +671,75 @@ const Planner = () => {
           <TabsContent value="chat" className="space-y-4">
             <div className="rounded-2xl bg-card border border-border shadow-soft p-4 space-y-3 min-h-[400px] flex flex-col">
               <div className="flex-1 space-y-3 overflow-y-auto max-h-[60vh]">
-                {chatMessages.map((m, i) => (
-                  <div key={i} className={`p-3 rounded-xl text-sm whitespace-pre-wrap ${m.role === "user" ? "bg-primary text-primary-foreground ml-12" : "bg-secondary mr-12"}`}>
-                    {m.content}
-                  </div>
-                ))}
+                {chatMessages.map((m, i) => {
+                  if (m.role === "user") {
+                    return (
+                      <div key={i} className="p-3 rounded-xl text-sm whitespace-pre-wrap bg-primary text-primary-foreground ml-12">
+                        {m.content}
+                      </div>
+                    );
+                  }
+                  const a = m.answer;
+                  if (a && (a.recipes?.length || a.title)) {
+                    return (
+                      <div key={i} className="mr-2 sm:mr-12 rounded-2xl border border-border bg-card shadow-soft overflow-hidden animate-in fade-in duration-500">
+                        <div className="px-5 pt-5 pb-3 bg-gradient-to-br from-primary/10 via-card to-accent/10">
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-primary/15 text-primary flex items-center justify-center shrink-0">
+                              <ChefHat className="w-5 h-5" />
+                            </div>
+                            <div className="min-w-0">
+                              <h3 className="text-lg font-extrabold leading-tight text-primary">{a.title}</h3>
+                              {a.subtitle && <p className="text-sm text-foreground/80 mt-1">{a.subtitle}</p>}
+                            </div>
+                          </div>
+                        </div>
+                        {a.recipes?.length > 0 && (
+                          <div className="p-4 sm:p-5 space-y-4 bg-secondary/30">
+                            {a.recipes.map((r, j) => (
+                              <article key={j} className="rounded-xl bg-card border border-border p-4 shadow-sm">
+                                <div className="flex items-center gap-3 mb-2">
+                                  <span className="text-2xl" aria-hidden>{r.foodEmoji || "🍳"}</span>
+                                  <h4 className="font-extrabold text-base leading-tight">{r.name}</h4>
+                                </div>
+                                {r.tags?.length > 0 && (
+                                  <div className="flex flex-wrap gap-1.5 mb-3">
+                                    {r.tags.map((t, k) => (
+                                      <span key={k} className="px-2 py-0.5 rounded-full bg-accent/15 text-accent text-[11px] font-bold uppercase tracking-wide">{t}</span>
+                                    ))}
+                                  </div>
+                                )}
+                                <div className="mb-3">
+                                  <p className="text-[11px] font-bold uppercase tracking-wider text-primary mb-1">Ingredients</p>
+                                  <p className="text-sm text-foreground/90 leading-relaxed">{r.ingredients}</p>
+                                </div>
+                                <div className="border-t border-border/60 pt-3">
+                                  <p className="text-[11px] font-bold uppercase tracking-wider text-primary mb-1">Method</p>
+                                  <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line">{r.method}</p>
+                                </div>
+                              </article>
+                            ))}
+                          </div>
+                        )}
+                        {a.notes && (
+                          <div className="px-5 py-3 text-xs text-muted-foreground border-t border-border bg-card">{a.notes}</div>
+                        )}
+                        {a.recipes?.length > 0 && (
+                          <div className="px-4 sm:px-5 py-3 border-t border-border bg-card flex justify-end">
+                            <Button size="sm" onClick={() => downloadChatPdf(a)} className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                              <FileDown className="w-4 h-4 mr-2" /> Download PDF
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={i} className="p-3 rounded-xl text-sm whitespace-pre-wrap bg-secondary mr-12">
+                      {m.content}
+                    </div>
+                  );
+                })}
                 {chatLoading && <div className="bg-secondary mr-12 p-3 rounded-xl"><Loader2 className="w-4 h-4 animate-spin" /></div>}
               </div>
               <form
