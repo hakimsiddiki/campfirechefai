@@ -107,7 +107,6 @@ ALWAYS respond by calling the provided tool \`return_chat_answer\`.
 - Each recipe: name, foodEmoji (one emoji), tags (1-3 short labels like "Easy", "Campfire", "2 People", "One Pan"), ingredients (one sentence describing all items), method (one sentence with numbered steps separated by ". ").
 - Stay realistic, no invented dishes, no banned phrases like "elevate", "flavor profile", "burst of flavor".`;
       userPrompt = question;
-      body_chat_tools_marker: true;
     } else {
       systemPrompt = `You are Campfire Chef, an outdoor cooking expert specializing in realistic, low-effort camp meals. Always respond with valid JSON that strictly matches the requested schema. Recipes must be practical for the given equipment and storage situation. Prioritize simple prep, few dishes, and durable ingredients.`;
       userPrompt = `Build a complete camping meal plan.
