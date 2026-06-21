@@ -234,99 +234,177 @@ const Planner = () => {
 
   const downloadPdf = async () => {
     if (!plan) return;
-    const toastId = toast.loading("Preparing PDF with images…");
+    const toastId = toast.loading("Preparing PDF…");
     try {
-      // Pre-fetch one image per meal (in parallel, with safe fallbacks).
-      const allMeals: { key: string; name: string }[] = [];
-      (plan.days || []).forEach((d) => (d.meals || []).forEach((m) => {
-        allMeals.push({ key: `${d.day}-${m.type}-${m.name}`, name: m.name });
-      }));
-      const imageEntries = await Promise.all(
-        allMeals.map(async (m) => [m.key, await fetchImageAsDataUrl(m.name)] as const),
-      );
-      const imageMap = new Map(imageEntries);
-
       const doc = new jsPDF({ unit: "pt", format: "letter" });
       const pageW = doc.internal.pageSize.getWidth();
       const pageH = doc.internal.pageSize.getHeight();
-      const margin = 48;
+      const margin = 54;
+      const contentW = pageW - margin * 2;
+
+      // Palette
+      const GREEN: [number, number, number] = [45, 95, 65];
+      const ORANGE: [number, number, number] = [195, 90, 40];
+      const TEXT: [number, number, number] = [40, 40, 40];
+      const MUTED: [number, number, number] = [110, 110, 110];
+      const BAND_BG: [number, number, number] = [232, 240, 232];
+      const RULE: [number, number, number] = [220, 215, 205];
+
       let y = margin;
 
-      const addText = (
+      const footer = () => {
+        const total = doc.getNumberOfPages();
+        for (let i = 1; i <= total; i++) {
+          doc.setPage(i);
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(9);
+          doc.setTextColor(140, 140, 140);
+          doc.text(`Campfire Chef AI · ${plan.title || "Camp Meal Plan"}`, margin, pageH - 24);
+          doc.text(`Page ${i}`, pageW - margin, pageH - 24, { align: "right" });
+        }
+      };
+
+      const ensure = (h: number) => {
+        if (y + h > pageH - margin - 18) { doc.addPage(); y = margin; }
+      };
+
+      const writeText = (
         text: string,
-        opts: { size?: number; bold?: boolean; gap?: number; color?: [number, number, number] } = {},
+        opts: { size?: number; bold?: boolean; gap?: number; color?: [number, number, number]; indent?: number; width?: number; align?: "left" | "center" } = {},
       ) => {
-        const { size = 11, bold = false, gap = 4, color = [30, 30, 30] } = opts;
+        const { size = 11, bold = false, gap = 5, color = TEXT, indent = 0, width = contentW - indent, align = "left" } = opts;
         doc.setFont("helvetica", bold ? "bold" : "normal");
         doc.setFontSize(size);
         doc.setTextColor(color[0], color[1], color[2]);
-        const lines = doc.splitTextToSize(String(text ?? ""), pageW - margin * 2);
+        const lineH = size * 1.25;
+        const lines = doc.splitTextToSize(String(text ?? ""), width);
         lines.forEach((ln: string) => {
-          if (y > pageH - margin) {
-            doc.addPage();
-            y = margin;
-          }
-          doc.text(ln, margin, y);
-          y += size + gap;
+          ensure(lineH);
+          const x = align === "center" ? pageW / 2 : margin + indent;
+          doc.text(ln, x, y + size, align === "center" ? { align: "center" } : undefined);
+          y += lineH + (gap - 5);
         });
       };
 
-      addText("Campfire Chef AI", { size: 10, color: [200, 80, 30], bold: true, gap: 2 });
-      addText(plan.title || "Camp Meal Plan", { size: 22, bold: true, gap: 8 });
-      if (plan.summary) addText(plan.summary, { size: 11, gap: 10, color: [80, 80, 80] });
-      if (plan.totalEstimatedCost) addText(`Estimated cost: ${plan.totalEstimatedCost}`, { size: 11, bold: true, gap: 4 });
-      if (plan.fuelTip) addText(`Fuel tip: ${plan.fuelTip}`, { size: 11, gap: 10, color: [80, 80, 80] });
+      // === Cover header ===
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(32);
+      doc.setTextColor(GREEN[0], GREEN[1], GREEN[2]);
+      doc.text("Campfire Chef AI", pageW / 2, y + 28, { align: "center" });
+      y += 44;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(13);
+      doc.setTextColor(MUTED[0], MUTED[1], MUTED[2]);
+      doc.text(plan.title || "Camp Meal Plan", pageW / 2, y, { align: "center" });
+      y += 24;
+
+      if (plan.summary) {
+        writeText(plan.summary, { size: 11, color: TEXT, gap: 6 });
+        y += 6;
+      }
+
+      // === Info table ===
+      const rows: [string, string][] = [];
+      if (plan.totalEstimatedCost) rows.push(["Estimated cost", plan.totalEstimatedCost]);
+      if (plan.fuelTip) rows.push(["Fuel tip", plan.fuelTip]);
+      if (rows.length) {
+        const labelW = 130;
+        const valueW = contentW - labelW;
+        rows.forEach(([label, value]) => {
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(11);
+          const valueLines = doc.splitTextToSize(value, valueW - 20);
+          const rowH = Math.max(34, valueLines.length * 14 + 16);
+          ensure(rowH);
+          // label cell bg
+          doc.setFillColor(BAND_BG[0], BAND_BG[1], BAND_BG[2]);
+          doc.rect(margin, y, labelW, rowH, "F");
+          // borders
+          doc.setDrawColor(RULE[0], RULE[1], RULE[2]);
+          doc.setLineWidth(0.5);
+          doc.rect(margin, y, contentW, rowH);
+          doc.line(margin + labelW, y, margin + labelW, y + rowH);
+          // label text
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(11);
+          doc.setTextColor(TEXT[0], TEXT[1], TEXT[2]);
+          doc.text(label, margin + 12, y + 20);
+          // value text
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(60, 60, 60);
+          doc.text(valueLines, margin + labelW + 12, y + 20);
+          y += rowH;
+        });
+        y += 16;
+      }
+
+      // === Days ===
+      const dayBanner = (label: string) => {
+        ensure(46);
+        doc.setFillColor(GREEN[0], GREEN[1], GREEN[2]);
+        doc.rect(margin, y, contentW, 34, "F");
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(20);
+        doc.setTextColor(255, 255, 255);
+        doc.text(label, margin + 14, y + 24);
+        y += 34 + 14;
+      };
 
       (plan.days || []).forEach((d) => {
-        y += 6;
-        addText(`Day ${d.day}`, { size: 16, bold: true, gap: 6, color: [30, 80, 50] });
+        dayBanner(`Day ${d.day}`);
         (d.meals || []).forEach((m) => {
-          addText(`${m.type}: ${m.name}`, { size: 13, bold: true, gap: 4 });
-          const img = imageMap.get(`${d.day}-${m.type}-${m.name}`);
-          if (img) {
-            const imgW = 240;
-            const imgH = imgW * (img.h / img.w);
-            if (y + imgH > pageH - margin) {
-              doc.addPage();
-              y = margin;
-            }
-            try {
-              doc.addImage(img.data, "JPEG", margin, y, imgW, imgH, undefined, "FAST");
-              y += imgH + 8;
-            } catch (e) {
-              console.warn("addImage failed for", m.name, e);
-            }
-          }
-          addText(`Prep ${m.prepMinutes ?? 0}m · Cook ${m.cookMinutes ?? 0}m · Cleanup: ${m.cleanup ?? "-"}`, { size: 10, color: [110, 110, 110], gap: 4 });
-          addText("Ingredients: " + (m.ingredients || []).join(", "), { size: 10, gap: 4 });
-          (m.instructions || []).forEach((step, i) => addText(`${i + 1}. ${step}`, { size: 10, gap: 3 }));
-          y += 4;
+          ensure(60);
+          writeText(`${m.type}: ${m.name}`, { size: 15, bold: true, color: ORANGE, gap: 4 });
+          writeText(`Prep ${m.prepMinutes ?? 0}m · Cook ${m.cookMinutes ?? 0}m · Cleanup: ${m.cleanup ?? "Easy"}`, { size: 10, bold: true, color: [90, 110, 95], gap: 6 });
+          writeText("Ingredients: " + (m.ingredients || []).join(", "), { size: 11, color: TEXT, gap: 8 });
+          (m.instructions || []).forEach((step, i) => {
+            writeText(`${i + 1}. ${step}`, { size: 11, color: TEXT, gap: 3, indent: 14 });
+          });
+          y += 10;
         });
       });
 
+      // === Grocery List ===
       doc.addPage();
       y = margin;
-      addText("Grocery List", { size: 20, bold: true, gap: 8, color: [30, 80, 50] });
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(26);
+      doc.setTextColor(GREEN[0], GREEN[1], GREEN[2]);
+      doc.text("Grocery List", margin, y + 22);
+      y += 40;
       (plan.groceryList || []).forEach((g) => {
-        addText(g.category, { size: 13, bold: true, gap: 4 });
-        (g.items || []).forEach((it) => addText("• " + it, { size: 11, gap: 3 }));
-        y += 4;
+        ensure(40);
+        writeText(g.category, { size: 13, bold: true, color: ORANGE, gap: 4 });
+        const itemsLine = (g.items || []).join(" • ");
+        writeText(itemsLine, { size: 11, color: TEXT, gap: 10 });
       });
 
+      // === Prep Checklist ===
       y += 8;
-      addText("Prep Checklist", { size: 16, bold: true, gap: 6, color: [200, 80, 30] });
-      (plan.prepChecklist || []).forEach((p) => addText("[ ] " + p, { size: 11, gap: 3 }));
+      ensure(40);
+      writeText("Prep Checklist", { size: 18, bold: true, color: GREEN, gap: 8 });
+      (plan.prepChecklist || []).forEach((p) => {
+        ensure(18);
+        doc.setDrawColor(GREEN[0], GREEN[1], GREEN[2]);
+        doc.setLineWidth(0.8);
+        doc.rect(margin, y + 4, 9, 9);
+        writeText(p, { size: 11, color: TEXT, gap: 5, indent: 18 });
+      });
 
-      y += 8;
-      addText("Storage Tips", { size: 16, bold: true, gap: 6, color: [200, 80, 30] });
-      (plan.storageTips || []).forEach((p) => addText("• " + p, { size: 11, gap: 3 }));
+      // === Storage Tips ===
+      y += 10;
+      ensure(40);
+      writeText("Storage Tips", { size: 18, bold: true, color: GREEN, gap: 8 });
+      (plan.storageTips || []).forEach((p) => {
+        writeText("• " + p, { size: 11, color: TEXT, gap: 5 });
+      });
+
+      footer();
 
       const safeTitle = (plan.title || "campfire-meal-plan").replace(/[^a-z0-9]+/gi, "-").toLowerCase();
       const filename = `${safeTitle || "campfire-meal-plan"}.pdf`;
-
-      // Primary: native jsPDF save (most reliable on desktop)
       doc.save(filename);
-      toast.success("PDF downloaded with images", { id: toastId });
+      toast.success("PDF downloaded", { id: toastId });
     } catch (err) {
       console.error("PDF download failed:", err);
       toast.error("Couldn't generate PDF — please try again.", { id: toastId });
