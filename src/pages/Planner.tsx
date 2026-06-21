@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Flame, ArrowLeft, FileDown, Loader2, Sparkles, ShoppingBasket, ListChecks, Clock, MessageCircle, Send } from "lucide-react";
+import { Flame, ArrowLeft, FileDown, Loader2, Sparkles, ShoppingBasket, ListChecks, Clock, MessageCircle, Send, ChefHat } from "lucide-react";
 import jsPDF from "jspdf";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -83,7 +83,10 @@ const Planner = () => {
   // Chat
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
-  const [chatMessages, setChatMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([
+  type ChatRecipe = { name: string; foodEmoji: string; tags: string[]; ingredients: string; method: string };
+  type ChatAnswer = { title: string; subtitle: string; recipes: ChatRecipe[]; notes?: string };
+  type ChatMessage = { role: "user" | "assistant"; content: string; answer?: ChatAnswer };
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     { role: "assistant", content: "Hey! I'm your Campfire Chef Assistant. Ask me anything — meals with no fridge, hot-weather food, water-light recipes, fuel tips…" },
   ]);
 
@@ -145,7 +148,7 @@ const Planner = () => {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      setChatMessages((m) => [...m, { role: "assistant", content: data.text }]);
+      setChatMessages((m) => [...m, { role: "assistant", content: data.text || "", answer: data.answer }]);
     } catch (e) {
       handleApiError(e);
     } finally {
