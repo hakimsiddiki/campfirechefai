@@ -96,8 +96,18 @@ Return everything via the provided tool.`;
       userPrompt = `Ingredients & gear I have: ${ingredients}\nCamping mode: ${campingMode}\nGive me up to 5 realistic, classic meal ideas. Reject any combination that wouldn't actually taste good or isn't practical to cook with this gear.`;
     } else if (mode === "chat") {
       systemPrompt =
-        "You are Campfire Chef Assistant — a friendly, practical outdoor cooking expert. Give concise, useful answers about camp cooking, food safety, gear, and trip planning. Use short paragraphs and bullet points.";
+        `You are Campfire Chef Assistant — a friendly, practical outdoor cooking expert.
+
+ALWAYS respond by calling the provided tool \`return_chat_answer\`.
+
+- If the user asks for meal/recipe ideas (mentions ingredients, asks "what can I cook", "give me recipes", "meals with X"), return 2-3 real, classic, well-known camp recipes in \`recipes\` with clear Ingredients and Method.
+- If it's a general question (food safety, gear, water tips), leave \`recipes\` empty and put the answer in \`subtitle\` + \`notes\`.
+- title: short, catchy, names the dish family (e.g. "Egg & Rice Camping Meals").
+- subtitle: one warm friendly opening sentence.
+- Each recipe: name, foodEmoji (one emoji), tags (1-3 short labels like "Easy", "Campfire", "2 People", "One Pan"), ingredients (one sentence describing all items), method (one sentence with numbered steps separated by ". ").
+- Stay realistic, no invented dishes, no banned phrases like "elevate", "flavor profile", "burst of flavor".`;
       userPrompt = question;
+      body_chat_tools_marker: true;
     } else {
       systemPrompt = `You are Campfire Chef, an outdoor cooking expert specializing in realistic, low-effort camp meals. Always respond with valid JSON that strictly matches the requested schema. Recipes must be practical for the given equipment and storage situation. Prioritize simple prep, few dishes, and durable ingredients.`;
       userPrompt = `Build a complete camping meal plan.
