@@ -96,7 +96,16 @@ Return everything via the provided tool.`;
       userPrompt = `Ingredients & gear I have: ${ingredients}\nCamping mode: ${campingMode}\nGive me up to 5 realistic, classic meal ideas. Reject any combination that wouldn't actually taste good or isn't practical to cook with this gear.`;
     } else if (mode === "chat") {
       systemPrompt =
-        "You are Campfire Chef Assistant — a friendly, practical outdoor cooking expert. Give concise, useful answers about camp cooking, food safety, gear, and trip planning. Use short paragraphs and bullet points.";
+        `You are Campfire Chef Assistant — a friendly, practical outdoor cooking expert.
+
+ALWAYS respond by calling the provided tool \`return_chat_answer\`.
+
+- If the user asks for meal/recipe ideas (mentions ingredients, asks "what can I cook", "give me recipes", "meals with X"), return 2-3 real, classic, well-known camp recipes in \`recipes\` with clear Ingredients and Method.
+- If it's a general question (food safety, gear, water tips), leave \`recipes\` empty and put the answer in \`subtitle\` + \`notes\`.
+- title: short, catchy, names the dish family (e.g. "Egg & Rice Camping Meals").
+- subtitle: one warm friendly opening sentence.
+- Each recipe: name, foodEmoji (one emoji), tags (1-3 short labels like "Easy", "Campfire", "2 People", "One Pan"), ingredients (one sentence describing all items), method (one sentence with numbered steps separated by ". ").
+- Stay realistic, no invented dishes, no banned phrases like "elevate", "flavor profile", "burst of flavor".`;
       userPrompt = question;
     } else {
       systemPrompt = `You are Campfire Chef, an outdoor cooking expert specializing in realistic, low-effort camp meals. Always respond with valid JSON that strictly matches the requested schema. Recipes must be practical for the given equipment and storage situation. Prioritize simple prep, few dishes, and durable ingredients.`;
@@ -236,6 +245,45 @@ Return JSON via the provided tool.`;
       body.tool_choice = { type: "function", function: { name: "return_meal_plan" } };
     }
 
+    if (mode === "chat") {
+      body.tools = [
+        {
+          type: "function",
+          function: {
+            name: "return_chat_answer",
+            description: "Return a structured assistant answer, optionally with recipe cards.",
+            parameters: {
+              type: "object",
+              properties: {
+                title: { type: "string", description: "Short catchy title for the answer (e.g. 'Egg & Rice Camping Meals')." },
+                subtitle: { type: "string", description: "One warm friendly opening sentence." },
+                recipes: {
+                  type: "array",
+                  description: "0-4 recipe cards. Leave empty if the question is not about recipes.",
+                  items: {
+                    type: "object",
+                    properties: {
+                      name: { type: "string" },
+                      foodEmoji: { type: "string", description: "One food emoji that fits the dish." },
+                      tags: { type: "array", items: { type: "string" }, description: "1-3 short labels like 'Easy', 'Campfire', '2 People'." },
+                      ingredients: { type: "string", description: "One sentence listing all ingredients." },
+                      method: { type: "string", description: "Numbered method as one paragraph: '1. Step. 2. Step. 3. Step.'" },
+                    },
+                    required: ["name", "foodEmoji", "tags", "ingredients", "method"],
+                    additionalProperties: false,
+                  },
+                },
+                notes: { type: "string", description: "Optional extra notes shown under the cards." },
+              },
+              required: ["title", "subtitle", "recipes"],
+              additionalProperties: false,
+            },
+          },
+        },
+      ];
+      body.tool_choice = { type: "function", function: { name: "return_chat_answer" } };
+    }
+
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -326,6 +374,17 @@ Return JSON via the provided tool.`;
       });
     }
 
+    // chat mode
+    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+    if (toolCall) {
+      try {
+        const answer = JSON.parse(toolCall.function.arguments);
+        const text = [answer.subtitle, answer.notes].filter(Boolean).join("\n\n");
+        return new Response(JSON.stringify({ text, answer }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      } catch (_) { /* fall through */ }
+    }
     const text = data.choices?.[0]?.message?.content ?? "";
     return new Response(JSON.stringify({ text }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
