@@ -176,6 +176,62 @@ const Planner = () => {
     }
   };
 
+  const downloadChatPdf = (answer: ChatAnswer) => {
+    try {
+      const doc = new jsPDF({ unit: "pt", format: "letter" });
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const margin = 48;
+      let y = margin;
+      const ensure = (h: number) => { if (y + h > pageH - margin) { doc.addPage(); y = margin; } };
+      const writeWrapped = (text: string, opts: { size?: number; bold?: boolean; gap?: number; color?: [number, number, number]; indent?: number } = {}) => {
+        const { size = 11, bold = false, gap = 5, color = [40, 40, 40], indent = 0 } = opts;
+        doc.setFont("helvetica", bold ? "bold" : "normal");
+        doc.setFontSize(size);
+        doc.setTextColor(color[0], color[1], color[2]);
+        const lines = doc.splitTextToSize(String(text ?? ""), pageW - margin * 2 - indent);
+        lines.forEach((ln: string) => { ensure(size + gap); doc.text(ln, margin + indent, y); y += size + gap; });
+      };
+
+      // Header band
+      doc.setFillColor(45, 90, 61); // forest green
+      doc.rect(0, 0, pageW, 80, "F");
+      doc.setTextColor(255, 247, 230);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text("CAMPFIRE CHEF AI", margin, 34);
+      doc.setFontSize(20);
+      doc.text(answer.title || "Camp Recipes", margin, 60);
+      y = 110;
+
+      if (answer.subtitle) writeWrapped(answer.subtitle, { size: 12, color: [90, 75, 60], gap: 8 });
+      y += 6;
+
+      (answer.recipes || []).forEach((r, idx) => {
+        ensure(80);
+        // Divider
+        doc.setDrawColor(220, 210, 195);
+        doc.line(margin, y, pageW - margin, y);
+        y += 16;
+        writeWrapped(`${idx + 1}. ${r.name}`, { size: 16, bold: true, color: [200, 95, 45], gap: 6 });
+        if (r.tags?.length) writeWrapped(r.tags.map((t) => `• ${t}`).join("    "), { size: 10, color: [110, 110, 110], gap: 8 });
+        writeWrapped("Ingredients", { size: 12, bold: true, color: [45, 90, 61], gap: 4 });
+        writeWrapped(r.ingredients, { size: 11, gap: 8 });
+        writeWrapped("Method", { size: 12, bold: true, color: [45, 90, 61], gap: 4 });
+        writeWrapped(r.method, { size: 11, gap: 10 });
+      });
+
+      if (answer.notes) { y += 4; writeWrapped(answer.notes, { size: 11, color: [90, 90, 90] }); }
+
+      const safe = (answer.title || "campfire-recipes").replace(/[^a-z0-9]+/gi, "-").toLowerCase();
+      doc.save(`${safe || "campfire-recipes"}.pdf`);
+      toast.success("PDF downloaded");
+    } catch (err) {
+      console.error(err);
+      toast.error("Couldn't generate PDF");
+    }
+  };
+
   const downloadPdf = async () => {
     if (!plan) return;
     const toastId = toast.loading("Preparing PDF with images…");
