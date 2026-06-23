@@ -8,6 +8,8 @@ import NotFound from "./pages/NotFound";
 import Planner from "./pages/Planner";
 import Auth from "./pages/Auth";
 import Pricing from "./pages/Pricing";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 import { AuthProvider } from "./hooks/useAuth";
 
 const queryClient = new QueryClient();
@@ -24,6 +26,8 @@ const App = () => (
           <Route path="/planner" element={<Planner />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
